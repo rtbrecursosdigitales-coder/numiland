@@ -22,7 +22,7 @@ export class GameGenerator {
       case TaskType.SEQUENCE:
         return this.genSequence(id, effectiveMin, effectiveMax);
       case TaskType.MISSING_NUMBER:
-        return this.genMissingNumber(id, effectiveMin, effectiveMax, targetTable);
+        return this.genMissingNumber(id, effectiveMin, effectiveMax);
       case TaskType.NUMBER_LINE:
         return this.genNumberLine(id, effectiveMin, effectiveMax);
       case TaskType.ORDERING:

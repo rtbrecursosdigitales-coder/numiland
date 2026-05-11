@@ -24,7 +24,7 @@ export function FunctionTask({ question, options, onAnswer }: FunctionTaskProps)
             size="xl"
             variant="secondary"
             onClick={() => onAnswer(option)}
-            className="text-2xl h-24 font-black"
+            className="text-2xl min-h-[6rem] py-4 font-black"
           >
             {option}
           </Button>

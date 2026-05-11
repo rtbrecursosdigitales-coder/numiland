@@ -36,7 +36,7 @@ export function Button({
     <motion.button
       whileTap={{ scale: 0.95 }}
       className={cn(
-        'inline-flex items-center justify-center transition-all focus:outline-none whitespace-nowrap',
+        'inline-flex items-center justify-center transition-all focus:outline-none text-center leading-tight',
         variants[variant],
         sizes[size],
         className

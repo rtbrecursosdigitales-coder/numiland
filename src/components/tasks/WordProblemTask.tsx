@@ -28,7 +28,7 @@ export function WordProblemTask({ prompt, options, onAnswer }: WordProblemTaskPr
             size="xl"
             variant="secondary"
             onClick={() => onAnswer(option)}
-            className="text-xl md:text-2xl h-14 md:h-16"
+            className="text-xl md:text-2xl min-h-[3.5rem] md:min-h-[4rem] py-2"
           >
             {option}
           </Button>

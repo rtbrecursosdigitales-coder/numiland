@@ -45,7 +45,7 @@ export function CountingTask({ question, options, onAnswer }: CountingTaskProps)
             size="lg"
             variant="secondary"
             onClick={() => onAnswer(option)}
-            className="text-2xl h-14 md:h-16"
+            className="text-2xl min-h-[3.5rem] md:min-h-[4rem] py-2"
           >
             {option}
           </Button>

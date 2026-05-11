@@ -50,7 +50,7 @@ export function CoordinateTask({ question, options, onAnswer }: CoordinateTaskPr
             size="xl"
             variant="secondary"
             onClick={() => onAnswer(option)}
-            className="text-2xl h-24"
+            className="text-2xl min-h-[6rem] py-4"
           >
             ({option})
           </Button>

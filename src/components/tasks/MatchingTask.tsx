@@ -34,7 +34,7 @@ export function MatchingTask({ question, options, onAnswer }: MatchingTaskProps)
             size="xl"
             variant="secondary"
             onClick={() => onAnswer(option)}
-            className="text-4xl h-24"
+            className="text-4xl min-h-[6rem] py-4"
           >
             {option}
           </Button>

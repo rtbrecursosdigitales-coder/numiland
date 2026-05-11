@@ -113,8 +113,11 @@ export default function App() {
 
   // --- ACTIONS ---
   const handleStartLevel = (levelId: number) => {
-    // Si no ha pagado, limitar niveles (ej: solo los primeros 3)
-    if (!isPaid && levelId > 3) {
+    // Permitir el acceso si el usuario ha pagado o si el nivel está en su lista de desbloqueados iniciales.
+    // Si no ha pagado, bloqueamos el acceso si el nivel no está desbloqueado o si intenta ir más allá de los niveles de prueba.
+    const isInitiallyUnlocked = progress.unlockedLevelIds.includes(levelId);
+    
+    if (!isPaid && !isInitiallyUnlocked) {
         setView('payment');
         return;
     }
@@ -368,7 +371,7 @@ export default function App() {
         stars={totalStarsCount}
     >
         <div className="w-full flex flex-col items-center">
-            <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-2 rounded-full font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center z-20">
+            <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-3 rounded-2xl font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center z-20 max-w-[90%] mx-auto">
                 {currentTask?.prompt}
             </div>
 
