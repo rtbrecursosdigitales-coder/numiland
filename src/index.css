@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-yellow: #FFD166;
+  --color-brand-orange: #FF9F1C;
+  --color-brand-pink: #EF476F;
+  --color-brand-purple: #E2C2FF;
+  --color-brand-blue: #118AB2;
+  --color-brand-green: #06D6A0;
+  --color-brand-red: #EF476F;
+  --color-brand-sky: #70D6FF;
+  --color-brand-periwinkle: #9AC1FF;
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-4xl: 3rem;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-sky text-slate-800 font-sans selection:bg-brand-yellow/30 min-h-screen;
+  }
+}
+
+.immersive-bg {
+  @apply bg-gradient-to-b from-brand-sky via-brand-periwinkle to-brand-purple min-h-screen relative;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.cloud-blur {
+  @apply absolute bg-white rounded-full blur-3xl opacity-40 pointer-events-none;
+}
+
+.glass-card {
+  @apply bg-white/90 backdrop-blur-xl rounded-[48px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white;
+}
+
+.kid-shadow {
+  box-shadow: 0 8px 0px 0px rgba(0, 0, 0, 0.1);
+}
+
+.kid-shadow-sm {
+  box-shadow: 0 4px 0px 0px rgba(0, 0, 0, 0.05);
+}
+
+.active-press {
+  @apply active:scale-95 transition-transform;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 3;
+}

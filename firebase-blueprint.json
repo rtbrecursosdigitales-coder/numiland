@@ -1,0 +1,29 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and progress",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "avatar": { "type": "string" },
+        "isPaid": { "type": "boolean" },
+        "currentLevelId": { "type": "number" },
+        "unlockedLevelIds": { "type": "array", "items": { "type": "number" } },
+        "completedLevelIds": { "type": "array", "items": { "type": "number" } },
+        "starsPerLevel": { "type": "object" },
+        "completionsPerLevel": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user progress and payment status"
+    }
+  }
+}
