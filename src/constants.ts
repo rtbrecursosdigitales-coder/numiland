@@ -14,12 +14,14 @@ export const LEVELS: LevelInfo[] = [
   ...Array.from({ length: 100 }, (_, i) => {
     const id = i + 1;
     const rangeMultiplier = Math.floor(i / 10) + 1;
+    const max = Math.min(100, rangeMultiplier * 10);
     return {
       id,
       world: 'explorers' as const,
       label: `Nivel ${id}`,
       min: 0,
-      max: Math.min(100, rangeMultiplier * 10),
+      max,
+      description: `Hasta ${max}`,
       color: colors[i % colors.length],
       unlocked: id <= 10,
       completed: false,
@@ -29,12 +31,14 @@ export const LEVELS: LevelInfo[] = [
   ...Array.from({ length: 100 }, (_, i) => {
     const id = i + 101;
     const rangeMultiplier = Math.floor(i / 10) + 1;
+    const max = Math.min(1000, rangeMultiplier * 100);
     return {
       id,
       world: 'adventurers' as const,
       label: `Aventura ${id-100}`,
       min: 0,
-      max: Math.min(1000, rangeMultiplier * 100),
+      max,
+      description: `Hasta ${max}`,
       color: colors[i % colors.length],
       unlocked: false,
       completed: false,
@@ -44,24 +48,32 @@ export const LEVELS: LevelInfo[] = [
   ...Array.from({ length: 100 }, (_, i) => {
     const id = i + 201;
     let targetTable: number | undefined = undefined;
+    let description = "";
     
-    if (i === 0) targetTable = 1; // Level 201: Table 1 (and 0)
-    else if (i === 1) targetTable = 2; // Level 202: Table 2
-    else if (i >= 2 && i < 18) {
-        // Table 3 starts at i=2 (Level 203)
-        // i=2,3 -> Table 3
-        // i=4,5 -> Table 4
-        // ...
-        // i=16,17 -> Table 10
-        targetTable = Math.floor((i - 2) / 2) + 3;
+    if (i === 0) {
+      targetTable = 1;
+      description = "Tabla del 1";
+    } else if (i === 1) {
+      targetTable = 2;
+      description = "Tabla del 2";
+    } else if (i >= 2 && i < 18) {
+      targetTable = Math.floor((i - 2) / 2) + 3;
+      description = `Tabla del ${targetTable}`;
+    } else if (i >= 18 && i < 40) {
+      description = "Tablas del 1 al 5";
+    } else if (i >= 40 && i < 70) {
+      description = "Tablas del 6 al 10";
+    } else {
+      description = "Tablas del 1 al 10";
     }
 
     return {
       id,
       world: 'scholars' as const,
-      label: targetTable !== undefined ? `Tabla del ${targetTable}` : `Repaso Tablas`,
+      label: targetTable !== undefined ? `Tablas` : `Academia`,
       min: 0,
       max: 100,
+      description,
       color: colors[i % colors.length],
       unlocked: false,
       completed: false,
@@ -72,12 +84,14 @@ export const LEVELS: LevelInfo[] = [
   ...Array.from({ length: 100 }, (_, i) => {
     const id = i + 301;
     const rangeMultiplier = Math.floor(i / 10) + 1;
+    const max = Math.min(10000, rangeMultiplier * 1000);
     return {
       id,
       world: 'masters' as const,
       label: `Maestro ${id-300}`,
       min: 0,
-      max: Math.min(10000, rangeMultiplier * 1000),
+      max,
+      description: `Hasta ${max}`,
       color: colors[i % colors.length],
       unlocked: false,
       completed: false,
@@ -87,12 +101,14 @@ export const LEVELS: LevelInfo[] = [
   ...Array.from({ length: 100 }, (_, i) => {
     const id = i + 401;
     const rangeMultiplier = Math.floor(i / 10) + 1;
+    const max = Math.min(100000, rangeMultiplier * 10000);
     return {
       id,
       world: 'legends' as const,
       label: `Leyenda ${id-400}`,
       min: 0,
-      max: Math.min(100000, rangeMultiplier * 10000),
+      max,
+      description: `Reto ${max}`,
       color: colors[i % colors.length],
       unlocked: false,
       completed: false,

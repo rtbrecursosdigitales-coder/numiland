@@ -203,10 +203,10 @@ export function LevelSelector({
 
               <div className="text-center">
                 <span className={cn(
-                    "text-[10px] md:text-xs font-black uppercase tracking-widest block mb-1 md:mb-2",
-                    isUnlocked ? "text-slate-400" : "text-white/30"
+                    "text-[10px] md:text-sm font-black uppercase tracking-tight block mb-1 md:mb-2 leading-none",
+                    isUnlocked ? "text-slate-500" : "text-white/30"
                 )}>
-                    {level.isMaster ? 'MAESTRO' : (level.max === 10 ? '0 - 10' : `Hasta ${level.max}`)}
+                    {level.description || (level.isMaster ? 'MAESTRO' : `Hasta ${level.max}`)}
                 </span>
                 
                 <div className="flex justify-center gap-0.5 md:gap-1">

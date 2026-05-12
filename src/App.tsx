@@ -147,9 +147,18 @@ export default function App() {
     // Si no ha pagado, bloqueamos el acceso si el nivel no está desbloqueado o si intenta ir más allá de los niveles de prueba.
     const isInitiallyUnlocked = progress.unlockedLevelIds.includes(levelId);
     
-    if (!isPaid && !isInitiallyUnlocked) {
-        setView('payment');
-        return;
+    // Si no ha pagado, verificamos límites
+    if (!isPaid) {
+        if (!isInitiallyUnlocked) {
+            setView('payment');
+            return;
+        }
+
+        const completions = progress.completionsPerLevel[levelId] || 0;
+        if (completions >= 10) {
+            setView('payment');
+            return;
+        }
     }
 
     const level = LEVELS.find(l => l.id === levelId);
@@ -291,9 +300,14 @@ export default function App() {
                 <div className="bg-brand-pink/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
                     <Lock className="text-brand-pink w-12 h-12" />
                 </div>
-                <h2 className="text-4xl font-black text-slate-800 mb-4 uppercase tracking-tight">Acceso Premium</h2>
-                <p className="text-slate-500 font-bold mb-10 text-lg leading-relaxed">
-                    ¡Has llegado muy lejos! Para continuar la aventura y desbloquear los <span className="text-brand-blue">100 niveles</span> y todos los mundos de <span className="text-brand-pink font-black">NUMILAND</span>, adquiere la versión completa.
+                <h2 className="text-4xl font-black text-slate-800 mb-4 uppercase tracking-tight text-left">Versión Premium</h2>
+                <p className="text-slate-500 font-bold mb-10 text-lg leading-relaxed text-left">
+                    ¡Libera todo el poder de <span className="text-brand-pink font-black">NUMILAND</span>! Obtén acceso ilimitado a:
+                    <br /><br />
+                    🌍 <span className="text-brand-blue">5 Mundos Increíbles</span><br />
+                    🏆 <span className="text-brand-green">500 Niveles de Aventura</span><br />
+                    🎮 <span className="text-brand-orange">Más de 2500 Minijuegos</span><br />
+                    ✨ <span className="text-brand-purple">Acceso de por vida a todo el contenido</span>
                 </p>
                 <div className="space-y-4">
                     <Button 

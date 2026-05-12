@@ -28,6 +28,7 @@ export interface LevelInfo {
   label: string;
   min: number;
   max: number;
+  description?: string; // Specific description (e.g. "Tabla del 2")
   color: string;
   unlocked: boolean;
   completed: boolean;
