@@ -30,7 +30,7 @@ import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2 } from 'lucid
 import { say, stopSpeaking } from './lib/speech';
 
 // Link de Mercado Pago configurado por el usuario
-const MERCADO_PAGO_LINK = 'https://mpago.la/2S6fX7g'; // Ejemplo, el usuario puede cambiarlo
+const MERCADO_PAGO_LINK = 'https://mpago.la/1FGeP6i'; 
 
 export default function App() {
   // --- AUTH & CLOUD STATE ---
@@ -391,6 +391,7 @@ export default function App() {
                     setProgress(newProgress);
                     syncProgress(newProgress);
                 }}
+                onSignOut={() => auth.signOut()}
             />
         </div>
     );

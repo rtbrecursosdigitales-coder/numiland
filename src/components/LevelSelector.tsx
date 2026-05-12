@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LevelInfo, Avatar, GameWorld } from '../types';
 import { Button } from './ui/Button';
-import { Lock, Star, Trophy, Grid2X2, Settings, User, X, Medal, Sparkles, HelpCircle, Rocket, Map, Compass, Zap, GraduationCap, RefreshCcw } from 'lucide-react';
+import { Lock, Star, Trophy, Grid2X2, Settings, User, X, Medal, Sparkles, HelpCircle, Rocket, Map, Compass, Zap, GraduationCap, RefreshCcw, LogOut } from 'lucide-react';
 import { AVATAR_ICONS } from '../constants';
 import { cn, getStarTier } from '../lib/utils';
 
@@ -17,6 +17,7 @@ interface LevelSelectorProps {
   avatar: string;
   currentWorld?: GameWorld;
   onWorldChange: (world: GameWorld) => void;
+  onSignOut: () => void;
 }
 
 export function LevelSelector({ 
@@ -29,7 +30,8 @@ export function LevelSelector({
   userName,
   avatar,
   currentWorld = 'explorers',
-  onWorldChange
+  onWorldChange,
+  onSignOut
 }: LevelSelectorProps) {
   const [selectedWorld, setSelectedWorld] = React.useState<GameWorld>(currentWorld);
   
@@ -81,6 +83,13 @@ export function LevelSelector({
         </div>
 
         <div className="flex gap-2 md:gap-4">
+            <button 
+              onClick={onSignOut}
+              title="Cerrar Sesión"
+              className="w-10 h-10 md:w-12 md:h-12 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all group"
+            >
+                <LogOut size={20} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
+            </button>
             <button 
               onClick={onResetProgress}
               title="Reiniciar Progreso"
