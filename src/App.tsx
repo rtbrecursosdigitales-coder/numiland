@@ -50,6 +50,7 @@ export default function App() {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [gameOverReason, setGameOverReason] = useState<'lives' | 'time'>('lives');
   const [lives, setLives] = useState(2);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -150,6 +151,24 @@ export default function App() {
         }
     }
   }, [view, currentTaskIndex, tasks, currentLevelId]);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   // --- TIMER LOGIC ---
   useEffect(() => {
@@ -361,7 +380,8 @@ export default function App() {
                     🌍 <span className="text-brand-blue">5 Mundos Increíbles</span><br />
                     🏆 <span className="text-brand-green">500 Niveles de Aventura</span><br />
                     🎮 <span className="text-brand-orange">Más de 2500 Minijuegos</span><br />
-                    ✨ <span className="text-brand-purple">Acceso de por vida a todo el contenido</span>
+                    ✨ <span className="text-brand-purple">Acceso de por vida a todo el contenido</span><br />
+                    📱 <span className="text-brand-pink font-black uppercase">Instalación Premium</span>: Descarga la app y juega sin conexión sin perder tu progreso.
                 </p>
                 <div className="space-y-4">
                     <Button 
@@ -455,6 +475,16 @@ export default function App() {
                     <MessageCircle size={16} />
                     <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Soporte</span>
                 </button>
+                
+                {isPaid && deferredPrompt && (
+                    <button 
+                        onClick={handleInstallClick}
+                        className="bg-brand-pink text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4 animate-bounce"
+                    >
+                        <RefreshCcw size={16} className="animate-spin-slow" />
+                        <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Instalar App</span>
+                    </button>
+                )}
             </div>
 
             <LevelSelector 
@@ -475,6 +505,12 @@ export default function App() {
                 onSignOut={logout}
                 onStatsClick={() => setShowComingSoonModal(true)}
             />
+            {/* Version Indicator */}
+            <div className="text-center pb-8 opacity-40">
+                <p className="text-white text-[10px] font-black uppercase tracking-widest">
+                    v1.0.26.4 | RTB Recursos Digitales
+                </p>
+            </div>
         </div>
     );
   } else {

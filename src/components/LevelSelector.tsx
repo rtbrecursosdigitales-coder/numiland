@@ -409,7 +409,44 @@ export function LevelSelector({
                 </section>
               </div>
 
-              <div className="mt-10 pt-8 border-t border-white/10 text-center">
+              <div className="mt-10 pt-8 border-t border-white/10 space-y-10">
+                {/* RTB Footer specifically for the guide */}
+                <div className="bg-white/95 backdrop-blur-md p-8 md:p-10 rounded-[3rem] border-4 border-white shadow-xl flex flex-col md:flex-row items-center gap-6 transition-all hover:scale-[1.01]">
+                    <div className="flex items-center gap-4">
+                        {!logoError ? (
+                          <img 
+                              src="https://rtbrecursosdigitales.com/wp-content/uploads/2023/10/cropped-favicon-rtb-192x192.png" 
+                              alt="RTB Logo" 
+                              className="h-16 w-16 md:h-20 md:w-20 object-contain drop-shadow-sm"
+                              referrerPolicy="no-referrer"
+                              onError={() => setLogoError(true)}
+                          />
+                        ) : (
+                          <div className="h-16 w-16 md:h-20 md:w-20 flex items-center justify-center bg-brand-blue/10 rounded-2xl p-2">
+                             <span className="text-brand-blue font-black text-2xl">RTB</span>
+                          </div>
+                        )}
+                        <div className="h-12 w-0.5 bg-slate-200 rounded-full hidden md:block" />
+                    </div>
+                    <div className="text-center md:text-left flex-1">
+                        <p className="text-slate-800 font-black text-xl tracking-tighter mb-1 uppercase">
+                            RTB RECURSOS DIGITALES
+                        </p>
+                        <p className="text-slate-500 font-bold text-sm leading-snug mb-3">
+                            Recursos para crear, aprender y resolver. <br/>
+                            <span className="text-brand-pink font-black uppercase text-xs italic">Volviendo divertidas las matemáticas.</span>
+                        </p>
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                          <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest bg-slate-100/50 inline-block px-3 py-1 rounded-full">
+                              Derechos reservados 2026
+                          </p>
+                          <p className="text-slate-300 font-bold text-[10px] tracking-widest uppercase">
+                              Versión 1.0.26.4
+                          </p>
+                        </div>
+                    </div>
+                </div>
+
                 <Button size="xl" variant="secondary" onClick={() => setShowInfo(false)} className="w-full">
                   ¡ENTENDIDO!
                 </Button>
