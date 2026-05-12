@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { LevelSelector } from './components/LevelSelector';
 import { Onboarding } from './components/Onboarding';
 import { RewardModal } from './components/ui/RewardModal';
+import { GameOverModal } from './components/ui/GameOverModal';
 import { CountingTask } from './components/tasks/CountingTask';
 import { SequenceTask } from './components/tasks/SequenceTask';
 import { ComparisonTask } from './components/tasks/ComparisonTask';
@@ -46,7 +47,14 @@ export default function App() {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [tasks, setTasks] = useState<GameTask[]>([]);
   const [showRewardModal, setShowRewardModal] = useState(false);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [gameOverReason, setGameOverReason] = useState<'lives' | 'time'>('lives');
+  const [lives, setLives] = useState(2);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [lastCorrect, setLastCorrect] = useState<boolean | null>(null);
+
+  const MAX_LIVES = 2;
+  const TIME_PER_TASK = 15; // Segundos por tarea
 
   // --- AUTH OBSERVER ---
   useEffect(() => {
@@ -141,6 +149,27 @@ export default function App() {
     }
   }, [view, currentTaskIndex, tasks, currentLevelId]);
 
+  // --- TIMER LOGIC ---
+  useEffect(() => {
+    let interval: any;
+    if (view === 'game' && timeLeft !== null && !showRewardModal && !showGameOverModal) {
+        interval = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev === null) return null;
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setGameOverReason('time');
+                    setShowGameOverModal(true);
+                    playTone(220, 0.4);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [view, timeLeft, showRewardModal, showGameOverModal]);
+
   // --- ACTIONS ---
   const handleStartLevel = (levelId: number) => {
     // Permitir el acceso si el usuario ha pagado o si el nivel está en su lista de desbloqueados iniciales.
@@ -167,20 +196,30 @@ export default function App() {
     setCurrentLevelId(levelId);
     setCurrentTaskIndex(0);
     setLastCorrect(null);
+    setLives(MAX_LIVES);
+    setShowGameOverModal(false);
     
     // Generate procedural tasks
     let gameTypes: TaskType[] = [];
+    let hasTimeLimit = false;
+
     if (level.world === 'explorers') {
         gameTypes = [TaskType.COUNTING, TaskType.MATCHING, TaskType.SEQUENCE, TaskType.MISSING_NUMBER, TaskType.COMPARISON, TaskType.ADDITION, TaskType.SUBTRACTION];
     } else if (level.world === 'adventurers') {
         gameTypes = [TaskType.SEQUENCE, TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION];
+        hasTimeLimit = true;
     } else if (level.world === 'scholars') {
         gameTypes = [TaskType.VISUAL_MULTIPLICATION, TaskType.WORD_PROBLEM, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.MISSING_FACTOR];
+        hasTimeLimit = true;
     } else if (level.world === 'masters') {
         gameTypes = [TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.ALGEBRA];
+        hasTimeLimit = true;
     } else { // legends
         gameTypes = [TaskType.ALGEBRA, TaskType.GEOMETRY, TaskType.COORDINATES, TaskType.FUNCTIONS, TaskType.MULTIPLICATION, TaskType.DIVISION];
+        hasTimeLimit = true;
     }
+
+    setTimeLeft(hasTimeLimit ? TIME_PER_TASK : null);
 
     const newTasks: GameTask[] = [];
     const totalTasks = level.isMaster ? MASTER_TASKS_COUNT : TASKS_PER_LEVEL;
@@ -276,10 +315,23 @@ export default function App() {
             setTimeout(() => {
                 setCurrentTaskIndex(prev => prev + 1);
                 setLastCorrect(null);
+                // Reset timer for next task if applicable
+                const level = LEVELS.find(l => l.id === currentLevelId);
+                if (level && level.world !== 'explorers') {
+                    setTimeLeft(TIME_PER_TASK);
+                }
             }, 800);
         }
     } else {
         playTone(220, 0.2);
+        setLives(prev => {
+            if (prev <= 1) {
+                setGameOverReason('lives');
+                setShowGameOverModal(true);
+                return 0;
+            }
+            return prev - 1;
+        });
         setTimeout(() => setLastCorrect(null), 800);
     }
   };
@@ -439,6 +491,9 @@ export default function App() {
             total={tasks.length || TASKS_PER_LEVEL}
             onBack={() => setView('lobby')}
             stars={totalStarsCount}
+            lives={lives}
+            maxLives={MAX_LIVES}
+            timeLeft={timeLeft}
         >
                     <div className="flex items-center gap-2 max-w-[90%] mx-auto z-20">
                         <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-3 rounded-2xl font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center flex-1">
@@ -606,6 +661,19 @@ export default function App() {
             }}
             onClose={() => {
                 setShowRewardModal(false);
+                setView('lobby');
+            }}
+        />
+
+        <GameOverModal 
+            isOpen={showGameOverModal}
+            reason={gameOverReason}
+            onRetry={() => {
+                setShowGameOverModal(false);
+                handleStartLevel(currentLevelId!);
+            }}
+            onClose={() => {
+                setShowGameOverModal(false);
                 setView('lobby');
             }}
         />

@@ -12,9 +12,12 @@ interface GameLayoutProps {
   total: number;
   onBack: () => void;
   stars: number;
+  lives?: number;
+  maxLives?: number;
+  timeLeft?: number | null;
 }
 
-export function GameLayout({ children, levelLabel, progress, total, onBack, stars }: GameLayoutProps) {
+export function GameLayout({ children, levelLabel, progress, total, onBack, stars, lives = 2, maxLives = 2, timeLeft }: GameLayoutProps) {
   return (
     <div className="immersive-bg min-h-screen flex flex-col overflow-x-hidden scroll-smooth">
       {/* Cloud shapes */}
@@ -43,6 +46,27 @@ export function GameLayout({ children, levelLabel, progress, total, onBack, star
         </div>
 
         <div className="flex items-center gap-4">
+          {timeLeft !== undefined && timeLeft !== null && (
+            <div className={cn(
+              "bg-white/20 backdrop-blur-md rounded-full px-4 py-2 border flex items-center gap-2 transition-colors",
+              timeLeft <= 5 ? "bg-red-500/40 border-red-400 animate-pulse" : "border-white/30"
+            )}>
+              <span className="text-xl">⏰</span>
+              <span className={cn(
+                "text-2xl font-black text-white lining-nums tabular-nums",
+                timeLeft <= 5 && "text-red-100"
+              )}>{timeLeft}s</span>
+            </div>
+          )}
+          
+          <div className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2 border border-white/30 flex items-center gap-1">
+             {Array.from({ length: maxLives }).map((_, i) => (
+               <span key={i} className={cn("text-2xl transition-transform duration-500", i >= lives ? "grayscale opacity-30 scale-75" : "drop-shadow-md scale-110")}>
+                 ❤️
+               </span>
+             ))}
+          </div>
+
           <div className="bg-white/20 backdrop-blur-md rounded-full pl-2 pr-6 py-2 border border-white/30 flex items-center gap-3">
             <div className="w-10 h-10 bg-brand-yellow rounded-full flex items-center justify-center text-xl shadow-inner">⭐</div>
             <span className="text-xl font-black text-white">{stars}</span>
