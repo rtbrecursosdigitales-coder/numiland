@@ -61,49 +61,68 @@ export default function App() {
 
   // --- AUTH OBSERVER ---
   useEffect(() => {
+    // Fail-safe: Si después de 5 segundos no ha cargado, forzamos la salida de la pantalla de carga
+    const timeoutId = setTimeout(() => {
+        if (loading) {
+            console.log('Auth observer timeout - Forcing loading state off');
+            setLoading(false);
+        }
+    }, 5000);
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        setUser(currentUser);
-        if (currentUser) {
-            // Check for payment success in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const isSuccess = urlParams.get('payment') === 'success';
+        try {
+            setUser(currentUser);
+            if (currentUser) {
+                // Check for payment success in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const isSuccess = urlParams.get('payment') === 'success';
 
-            // Listen to Firestore for this user
-            const userRef = doc(db, 'users', currentUser.uid);
-            
-            if (isSuccess) {
-                await setDoc(userRef, { isPaid: true }, { merge: true });
-                setIsPaid(true);
-                // Clear URL params
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+                // Listen to Firestore for this user
+                const userRef = doc(db, 'users', currentUser.uid);
+                
+                if (isSuccess) {
+                    await setDoc(userRef, { isPaid: true }, { merge: true });
+                    setIsPaid(true);
+                    // Clear URL params
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
 
-            const userSnap = await getDoc(userRef);
-            
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                setIsPaid(userData.isPaid || currentUser.email === 'rtb.recursosdigitales@gmail.com');
-                setProgress(prev => ({
-                    ...prev,
-                    ...userData,
-                    avatar: userData.avatar as Avatar || 'bear',
-                    name: userData.name || '',
-                    currentWorld: userData.currentWorld as GameWorld || 'explorers',
-                }));
-                if (userData.name) setView('lobby');
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    setIsPaid(userData.isPaid || currentUser.email === 'rtb.recursosdigitales@gmail.com');
+                    setProgress(prev => ({
+                        ...prev,
+                        ...userData,
+                        avatar: userData.avatar as Avatar || 'bear',
+                        name: userData.name || '',
+                        currentWorld: userData.currentWorld as GameWorld || 'explorers',
+                    }));
+                    if (userData.name) setView('lobby');
+                } else {
+                    // New user - checking if they are admin to give auto-pay
+                    setIsPaid(currentUser.email === 'rtb.recursosdigitales@gmail.com');
+                    setView('onboarding');
+                }
             } else {
-                // New user - checking if they are admin to give auto-pay
-                setIsPaid(currentUser.email === 'rtb.recursosdigitales@gmail.com');
+                setIsPaid(false);
+                setProgress(INITIAL_PROGRESS);
                 setView('onboarding');
             }
-        } else {
-            setIsPaid(false);
-            setProgress(INITIAL_PROGRESS);
+        } catch (error) {
+            console.error('Error in auth observer:', error);
+            // Default to onboarding on error
             setView('onboarding');
+        } finally {
+            clearTimeout(timeoutId);
+            setLoading(false);
         }
-        setLoading(false);
     });
-    return () => unsubscribe();
+    return () => {
+        unsubscribe();
+        clearTimeout(timeoutId);
+    };
   }, []);
 
   // --- CLOUD SYNC ---
@@ -361,8 +380,25 @@ export default function App() {
 
   if (loading) {
     mainContent = (
-        <div className="immersive-bg min-h-screen flex items-center justify-center">
-            <div className="w-20 h-20 border-8 border-white/20 border-t-white rounded-full animate-spin" />
+        <div className="immersive-bg min-h-screen flex flex-col items-center justify-center p-6 text-center">
+            <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 border-8 border-white/20 border-t-white rounded-full mb-8 shadow-xl"
+            />
+            <h2 className="text-white font-black text-2xl uppercase tracking-widest animate-pulse">
+                Conectando con NumiLand...
+            </h2>
+            <div className="mt-8 space-y-4">
+                <p className="text-white/60 font-bold text-sm">Si esto tarda demasiado, intenta presionar el botón de abajo</p>
+                <Button 
+                    variant="secondary"
+                    onClick={() => setLoading(false)}
+                    className="px-8"
+                >
+                    FORZAR ENTRADA
+                </Button>
+            </div>
         </div>
     );
   } else if (view === 'payment') {
