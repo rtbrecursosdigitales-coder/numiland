@@ -15,9 +15,10 @@ interface GameLayoutProps {
   lives?: number;
   maxLives?: number;
   timeLeft?: number | null;
+  onStatsClick?: () => void;
 }
 
-export function GameLayout({ children, levelLabel, progress, total, onBack, stars, lives = 2, maxLives = 2, timeLeft }: GameLayoutProps) {
+export function GameLayout({ children, levelLabel, progress, total, onBack, stars, lives = 2, maxLives = 2, timeLeft, onStatsClick }: GameLayoutProps) {
   return (
     <div className="immersive-bg min-h-screen flex flex-col overflow-x-hidden scroll-smooth">
       {/* Cloud shapes */}
@@ -67,10 +68,13 @@ export function GameLayout({ children, levelLabel, progress, total, onBack, star
              ))}
           </div>
 
-          <div className="bg-white/20 backdrop-blur-md rounded-full pl-2 pr-6 py-2 border border-white/30 flex items-center gap-3">
+          <button 
+            onClick={onStatsClick}
+            className="bg-white/20 backdrop-blur-md rounded-full pl-2 pr-6 py-2 border border-white/30 flex items-center gap-3 hover:bg-white/30 transition-colors active:scale-95 cursor-pointer"
+          >
             <div className="w-10 h-10 bg-brand-yellow rounded-full flex items-center justify-center text-xl shadow-inner">⭐</div>
             <span className="text-xl font-black text-white">{stars}</span>
-          </div>
+          </button>
         </div>
       </header>
 

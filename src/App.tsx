@@ -3,6 +3,7 @@ import { LevelSelector } from './components/LevelSelector';
 import { Onboarding } from './components/Onboarding';
 import { RewardModal } from './components/ui/RewardModal';
 import { GameOverModal } from './components/ui/GameOverModal';
+import { ComingSoonModal } from './components/ui/ComingSoonModal';
 import { CountingTask } from './components/tasks/CountingTask';
 import { SequenceTask } from './components/tasks/SequenceTask';
 import { ComparisonTask } from './components/tasks/ComparisonTask';
@@ -48,6 +49,7 @@ export default function App() {
   const [tasks, setTasks] = useState<GameTask[]>([]);
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [gameOverReason, setGameOverReason] = useState<'lives' | 'time'>('lives');
   const [lives, setLives] = useState(2);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -336,16 +338,16 @@ export default function App() {
     }
   };
 
+  let mainContent;
+
   if (loading) {
-    return (
+    mainContent = (
         <div className="immersive-bg min-h-screen flex items-center justify-center">
             <div className="w-20 h-20 border-8 border-white/20 border-t-white rounded-full animate-spin" />
         </div>
     );
-  }
-
-  if (view === 'payment') {
-    return (
+  } else if (view === 'payment') {
+    mainContent = (
         <div className="immersive-bg min-h-screen flex items-center justify-center p-6">
             <div className="glass-card max-w-lg w-full p-12 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-brand-pink" />
@@ -397,10 +399,8 @@ export default function App() {
             </div>
         </div>
     );
-  }
-
-  if (view === 'onboarding') {
-    return (
+  } else if (view === 'onboarding') {
+    mainContent = (
         <Onboarding 
             isSignedIn={!!user}
             userEmail={user?.email}
@@ -428,10 +428,8 @@ export default function App() {
             }}
         />
     );
-  }
-
-  if (view === 'lobby') {
-    return (
+  } else if (view === 'lobby') {
+    mainContent = (
         <div className="relative">
             {/* Admin/User indicator */}
             <div className="fixed top-4 left-4 z-50 flex gap-2">
@@ -475,16 +473,15 @@ export default function App() {
                     syncProgress(newProgress);
                 }}
                 onSignOut={logout}
+                onStatsClick={() => setShowComingSoonModal(true)}
             />
         </div>
     );
-  }
-
-  const currentTask = tasks[currentTaskIndex];
-  const currentLevel = LEVELS.find(l => l.id === currentLevelId);
-
-  return (
-    <>
+  } else {
+    // view === 'game'
+    const currentTask = tasks[currentTaskIndex];
+    const currentLevel = LEVELS.find(l => l.id === currentLevelId);
+    mainContent = (
         <GameLayout
             levelLabel={currentLevel?.label || ''}
             progress={currentTaskIndex + 1}
@@ -494,6 +491,7 @@ export default function App() {
             lives={lives}
             maxLives={MAX_LIVES}
             timeLeft={timeLeft}
+            onStatsClick={() => setShowComingSoonModal(true)}
         >
                     <div className="flex items-center gap-2 max-w-[90%] mx-auto z-20">
                         <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-3 rounded-2xl font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center flex-1">
@@ -639,6 +637,12 @@ export default function App() {
                     </motion.div>
                 )}
         </GameLayout>
+    );
+  }
+
+  return (
+    <>
+        {mainContent}
 
         <RewardModal 
             isOpen={showRewardModal}
@@ -676,6 +680,11 @@ export default function App() {
                 setShowGameOverModal(false);
                 setView('lobby');
             }}
+        />
+
+        <ComingSoonModal 
+            isOpen={showComingSoonModal}
+            onClose={() => setShowComingSoonModal(false)}
         />
     </>
   );

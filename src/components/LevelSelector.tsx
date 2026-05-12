@@ -18,6 +18,7 @@ interface LevelSelectorProps {
   currentWorld?: GameWorld;
   onWorldChange: (world: GameWorld) => void;
   onSignOut: () => void;
+  onStatsClick?: () => void;
 }
 
 export function LevelSelector({ 
@@ -31,7 +32,8 @@ export function LevelSelector({
   avatar,
   currentWorld = 'explorers',
   onWorldChange,
-  onSignOut
+  onSignOut,
+  onStatsClick
 }: LevelSelectorProps) {
   const [selectedWorld, setSelectedWorld] = React.useState<GameWorld>(currentWorld);
   
@@ -103,10 +105,13 @@ export function LevelSelector({
             >
                 <HelpCircle size={24} strokeWidth={2.5} />
             </button>
-            <div className="bg-white/20 backdrop-blur-md rounded-full pl-2 pr-4 md:pr-6 py-1.5 border-2 border-white/30 flex items-center gap-2 md:gap-3">
+            <button 
+              onClick={onStatsClick}
+              className="bg-white/20 backdrop-blur-md rounded-full pl-2 pr-4 md:pr-6 py-1.5 border-2 border-white/30 flex items-center gap-2 md:gap-3 hover:bg-white/40 transition-all active:scale-95 cursor-pointer"
+            >
                 <div className="w-6 h-6 md:w-8 md:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-sm md:text-lg shadow-inner border-2 border-white">⭐</div>
                 <span className="text-lg md:text-2xl font-black text-white drop-shadow-sm">{totalStars}</span>
-            </div>
+            </button>
         </div>
       </div>
 
