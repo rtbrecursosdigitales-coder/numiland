@@ -422,10 +422,10 @@ export default function App() {
                 <div className="space-y-4">
                     <Button 
                         size="xl" 
-                        className="w-full h-20 text-2xl font-black gap-3 bg-brand-yellow hover:bg-brand-yellow/90 text-slate-800 border-brand-yellow/30"
+                        className="w-full h-20 text-xl md:text-2xl font-black gap-3 bg-brand-yellow hover:bg-brand-yellow/90 text-slate-800 border-brand-yellow/30"
                         onClick={() => window.open(MERCADO_PAGO_LINK, '_blank')}
                     >
-                        <ExternalLink className="w-8 h-8" /> PAGAR CON MERCADO PAGO
+                        <ExternalLink className="w-8 h-8" /> MERCADO PAGO
                     </Button>
                     <Button 
                         variant="outline"
