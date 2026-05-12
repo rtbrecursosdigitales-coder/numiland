@@ -177,9 +177,9 @@ export function LevelSelector({
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: idx * 0.05 }}
-              whileHover={isUnlocked ? { scale: 1.05, y: -5 } : {}}
-              whileTap={isUnlocked ? { scale: 0.95 } : {}}
-              onClick={() => isUnlocked && onSelectLevel(level.id)}
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onSelectLevel(level.id)}
               className={cn(
                 "relative rounded-3xl p-3 md:p-4 flex flex-col items-center justify-center aspect-square transition-all cursor-pointer overflow-hidden",
                 level.isMaster && isUnlocked ? "bg-brand-orange/20 border-brand-orange/40 border-2 animate-pulse shadow-brand-orange/20" : "",

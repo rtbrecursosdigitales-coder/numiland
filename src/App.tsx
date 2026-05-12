@@ -18,7 +18,7 @@ import { WordProblemTask } from './components/tasks/WordProblemTask';
 import { MissingFactorTask } from './components/tasks/MissingFactorTask';
 import { GameGenerator } from './lib/GameGenerator';
 import { LEVELS, INITIAL_PROGRESS, TASKS_PER_LEVEL, MASTER_TASKS_COUNT } from './constants';
-import { UserProgress, TaskType, GameTask, Avatar } from './types';
+import { UserProgress, TaskType, GameTask, Avatar, GameWorld } from './types';
 import confetti from 'canvas-confetti';
 import { GameLayout } from './components/GameLayout';
 import { motion } from 'motion/react';
@@ -26,7 +26,8 @@ import { auth, db, signInWithGoogle, logout } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Button } from './components/ui/Button';
-import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2 } from 'lucide-react';
+import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2, RefreshCcw } from 'lucide-react';
+import { cn } from './lib/utils';
 import { say, stopSpeaking } from './lib/speech';
 
 // Link de Mercado Pago configurado por el usuario
@@ -187,10 +188,15 @@ export default function App() {
   const handleLevelComplete = () => {
     const stars = 3; 
     
+    const nextLevelId = currentLevelId! + 1;
+    const canUnlockNext = isPaid || progress.unlockedLevelIds.length < 10 || progress.unlockedLevelIds.includes(nextLevelId);
+
     const newProgress: UserProgress = {
         ...progress,
         completedLevelIds: [...new Set([...progress.completedLevelIds, currentLevelId!])],
-        unlockedLevelIds: [...new Set([...progress.unlockedLevelIds, currentLevelId! + 1])].filter(id => id <= LEVELS.length),
+        unlockedLevelIds: canUnlockNext 
+            ? [...new Set([...progress.unlockedLevelIds, nextLevelId])].filter(id => id <= LEVELS.length)
+            : progress.unlockedLevelIds,
         starsPerLevel: {
             ...progress.starsPerLevel,
             [currentLevelId!]: Math.max(progress.starsPerLevel[currentLevelId!] || 0, stars)
@@ -285,9 +291,9 @@ export default function App() {
                 <div className="bg-brand-pink/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
                     <Lock className="text-brand-pink w-12 h-12" />
                 </div>
-                <h2 className="text-4xl font-black text-slate-800 mb-4 uppercase tracking-tight">Nivel Bloqueado</h2>
+                <h2 className="text-4xl font-black text-slate-800 mb-4 uppercase tracking-tight">Acceso Premium</h2>
                 <p className="text-slate-500 font-bold mb-10 text-lg leading-relaxed">
-                    ¡Has llegado muy lejos! Para continuar la aventura y desbloquear los <span className="text-brand-blue">100 niveles</span>, únete al Club NUMILAND.
+                    ¡Has llegado muy lejos! Para continuar la aventura y desbloquear los <span className="text-brand-blue">100 niveles</span> y todos los mundos de <span className="text-brand-pink font-black">NUMILAND</span>, adquiere la versión completa.
                 </p>
                 <div className="space-y-4">
                     <Button 
@@ -296,6 +302,14 @@ export default function App() {
                         onClick={() => window.open(MERCADO_PAGO_LINK, '_blank')}
                     >
                         <ExternalLink className="w-8 h-8" /> PAGAR CON MERCADO PAGO
+                    </Button>
+                    <Button 
+                        variant="outline"
+                        size="lg"
+                        className="w-full h-16 text-xl font-black gap-3 border-brand-yellow text-brand-yellow"
+                        onClick={() => window.location.reload()}
+                    >
+                        <RefreshCcw className="w-6 h-6" /> YA REALICÉ EL PAGO
                     </Button>
                     <Button 
                         size="lg" 
@@ -355,18 +369,21 @@ export default function App() {
         <div className="relative">
             {/* Admin/User indicator */}
             <div className="fixed top-4 left-4 z-50 flex gap-2">
-                <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border-2 border-brand-blue shadow-lg flex items-center gap-2">
-                    {isPaid ? <Crown size={16} className="text-brand-yellow fill-brand-yellow" /> : <Lock size={16} className="text-slate-400" />}
-                    <span className="text-xs font-black uppercase text-brand-blue tracking-widest">
-                        {isPaid ? 'Premium' : 'Free'}
+                <div 
+                    onClick={() => !isPaid && setView('payment')}
+                    className={cn(
+                        "bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border-2 shadow-lg flex items-center gap-2 transition-all",
+                        !isPaid ? "border-brand-pink hover:scale-105 cursor-pointer" : "border-brand-blue"
+                    )}
+                >
+                    {isPaid ? <Crown size={16} className="text-brand-yellow fill-brand-yellow" /> : <Lock size={16} className="text-brand-pink" />}
+                    <span className={cn(
+                        "text-xs font-black uppercase tracking-widest",
+                        isPaid ? "text-brand-blue" : "text-brand-pink"
+                    )}>
+                        {isPaid ? 'Premium' : 'Pasar a Premium'}
                     </span>
                 </div>
-                <button 
-                    onClick={logout}
-                    className="bg-brand-pink text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white"
-                >
-                    <LogOut size={16} />
-                </button>
                 <button 
                     onClick={() => window.open('https://wa.me/5492233440067', '_blank')}
                     className="bg-green-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4"
@@ -391,7 +408,7 @@ export default function App() {
                     setProgress(newProgress);
                     syncProgress(newProgress);
                 }}
-                onSignOut={() => auth.signOut()}
+                onSignOut={logout}
             />
         </div>
     );
