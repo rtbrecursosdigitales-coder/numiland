@@ -51,7 +51,13 @@ export function RewardModal({ isOpen, stars, completions, onNext, onRetry, onClo
                 <Trophy size={48} className="text-white" />
               </motion.div>
 
-               <h2 className="text-3xl font-black text-slate-800 mb-2 whitespace-nowrap">¡EXCELENTE TRABAJO!</h2>
+               <h2 className="text-3xl font-black text-slate-800 mb-1 whitespace-nowrap uppercase tracking-tighter">¡FELICIDADES!</h2>
+               <h3 className="text-xl font-bold text-slate-500 mb-6 drop-shadow-sm uppercase">¡Has completado el nivel!</h3>
+               
+               <div className="text-7xl mb-8 transform hover:scale-110 transition-transform">
+                  {tier.name === 'MAESTRO' ? '👑' : tier.name === 'RUBÍ' ? '❤️' : tier.name === 'DIAMANTE' ? '💎' : '😊'}
+               </div>
+
               <div className="flex items-center justify-center gap-2 mb-6">
                 <span className={`text-xl font-black uppercase tracking-tighter ${tier.color}`}>
                     {tier.name}

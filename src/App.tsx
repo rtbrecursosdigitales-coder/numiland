@@ -26,7 +26,11 @@ import { auth, db, signInWithGoogle, logout } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Button } from './components/ui/Button';
-import { Lock, Crown, LogOut, MessageCircle } from 'lucide-react';
+import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2 } from 'lucide-react';
+import { say, stopSpeaking } from './lib/speech';
+
+// Link de Mercado Pago configurado por el usuario
+const MERCADO_PAGO_LINK = 'https://mpago.la/2S6fX7g'; // Ejemplo, el usuario puede cambiarlo
 
 export default function App() {
   // --- AUTH & CLOUD STATE ---
@@ -48,8 +52,20 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setUser(currentUser);
         if (currentUser) {
+            // Check for payment success in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const isSuccess = urlParams.get('payment') === 'success';
+
             // Listen to Firestore for this user
             const userRef = doc(db, 'users', currentUser.uid);
+            
+            if (isSuccess) {
+                await setDoc(userRef, { isPaid: true }, { merge: true });
+                setIsPaid(true);
+                // Clear URL params
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
             const userSnap = await getDoc(userRef);
             
             if (userSnap.exists()) {
@@ -60,6 +76,7 @@ export default function App() {
                     ...userData,
                     avatar: userData.avatar as Avatar || 'bear',
                     name: userData.name || '',
+                    currentWorld: userData.currentWorld as GameWorld || 'explorers',
                 }));
                 if (userData.name) setView('lobby');
             } else {
@@ -110,6 +127,18 @@ export default function App() {
         completions: progress.completionsPerLevel[l.id] || 0
     }));
   }, [progress, user]);
+
+  // --- VOICE ---
+  useEffect(() => {
+    if (view === 'game' && currentTaskIndex !== null && tasks[currentTaskIndex]) {
+        const t = tasks[currentTaskIndex];
+        // Only auto-play if in explorers (World 1) or first task
+        const isWorld1 = currentLevelId && currentLevelId < 100;
+        if (isWorld1 || currentTaskIndex === 0) {
+            say(t.prompt);
+        }
+    }
+  }, [view, currentTaskIndex, tasks, currentLevelId]);
 
   // --- ACTIONS ---
   const handleStartLevel = (levelId: number) => {
@@ -175,6 +204,7 @@ export default function App() {
     setProgress(newProgress);
     syncProgress(newProgress);
     setShowRewardModal(true);
+    say('¡Felicidades! Has completado el nivel');
   };
 
   const handleResetProgress = async () => {
@@ -263,17 +293,17 @@ export default function App() {
                     <Button 
                         size="xl" 
                         className="w-full h-20 text-2xl font-black gap-3 bg-brand-yellow hover:bg-brand-yellow/90 text-slate-800 border-brand-yellow/30"
-                        onClick={() => window.open('https://rtbrecursosdigitales.com/', '_blank')}
+                        onClick={() => window.open(MERCADO_PAGO_LINK, '_blank')}
                     >
-                        <Crown className="w-8 h-8 fill-slate-800" /> OBTENER ACCESO FULL
+                        <ExternalLink className="w-8 h-8" /> PAGAR CON MERCADO PAGO
                     </Button>
                     <Button 
                         size="lg" 
                         variant="secondary"
                         className="w-full h-16 text-xl font-bold gap-3"
-                        onClick={() => window.open('https://wa.me/5492233440067', '_blank')}
+                        onClick={() => window.open(`https://wa.me/5492233440067?text=Hola! Quiero comprar el acceso full para Numiland. Mi email es: ${user?.email}`, '_blank')}
                     >
-                        <MessageCircle className="w-6 h-6" /> CONSULTAR POR WHATSAPP
+                        <MessageCircle className="w-6 h-6" /> PAGAR POR TRANSFERENCIA
                     </Button>
                     <Button 
                         variant="outline" 
@@ -309,7 +339,8 @@ export default function App() {
                     name, 
                     avatar: avatar as Avatar,
                     unlockedLevelIds: unlocked,
-                    currentLevelId: startId
+                    currentLevelId: startId,
+                    currentWorld: startingWorld
                 };
                 setProgress(newProgress);
                 syncProgress(newProgress);
@@ -354,6 +385,12 @@ export default function App() {
                 onResetProgress={handleResetProgress}
                 userName={progress.name}
                 avatar={progress.avatar}
+                currentWorld={progress.currentWorld}
+                onWorldChange={(world) => {
+                    const newProgress = { ...progress, currentWorld: world };
+                    setProgress(newProgress);
+                    syncProgress(newProgress);
+                }}
             />
         </div>
     );
@@ -363,150 +400,158 @@ export default function App() {
   const currentLevel = LEVELS.find(l => l.id === currentLevelId);
 
   return (
-    <GameLayout
-        levelLabel={currentLevel?.label || ''}
-        progress={currentTaskIndex + 1}
-        total={tasks.length || TASKS_PER_LEVEL}
-        onBack={() => setView('lobby')}
-        stars={totalStarsCount}
-    >
-        <div className="w-full flex flex-col items-center">
-            <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-3 rounded-2xl font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center z-20 max-w-[90%] mx-auto">
-                {currentTask?.prompt}
-            </div>
-
-            <div className="flex flex-col items-center w-full">
-                {currentTask?.type === TaskType.COUNTING && (
-                    <CountingTask 
-                        question={currentTask.question as string[]}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.MATCHING && (
-                    <MatchingTask 
-                        question={currentTask.question as { count: number; icon: string }}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {(currentTask?.type === TaskType.ADDITION || currentTask?.type === TaskType.SUBTRACTION || currentTask?.type === TaskType.MULTIPLICATION || currentTask?.type === TaskType.DIVISION) && (
-                    <ArithmeticTask 
-                        type={currentTask.type}
-                        question={currentTask.question as any}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {(currentTask?.type === TaskType.SEQUENCE || currentTask?.type === TaskType.MISSING_NUMBER || currentTask?.type === TaskType.PATTERN) && (
-                    <SequenceTask 
-                        question={currentTask.type === TaskType.PATTERN 
-                            ? [...(currentTask.question as number[]), null] 
-                            : currentTask.question as (number | null)[]}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.COMPARISON && (
-                    <ComparisonTask 
-                        question={currentTask.question as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.ORDERING && (
-                    <OrderingTask 
-                        question={currentTask.question as number[]}
-                        prompt={currentTask.prompt}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.NUMBER_LINE && (
-                    <NumberLineTask 
-                        question={currentTask.question as { start: number; end: number }}
-                        answer={currentTask.answer as number}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.ALGEBRA && (
-                    <AlgebraTask 
-                        question={currentTask.question as string}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.GEOMETRY && (
-                    <GeometryTask 
-                        question={currentTask.question as string}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.COORDINATES && (
-                    <CoordinateTask 
-                        question={currentTask.question as { x: number; y: number }}
-                        options={currentTask.options as string[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.FUNCTIONS && (
-                    <FunctionTask 
-                        question={currentTask.question as string}
-                        options={currentTask.options as string[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.VISUAL_MULTIPLICATION && (
-                    <VisualMultiplicationTask 
-                        question={currentTask.question as any}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.WORD_PROBLEM && (
-                    <WordProblemTask 
-                        prompt={currentTask.prompt}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {currentTask?.type === TaskType.MISSING_FACTOR && (
-                    <MissingFactorTask 
-                        question={currentTask.question as any}
-                        options={currentTask.options as number[]}
-                        onAnswer={handleAnswer}
-                    />
-                )}
-                {!currentTask && (
-                    <div className="text-center py-20 text-slate-400 font-bold">
-                        Cargando desafío...
+    <>
+        <GameLayout
+            levelLabel={currentLevel?.label || ''}
+            progress={currentTaskIndex + 1}
+            total={tasks.length || TASKS_PER_LEVEL}
+            onBack={() => setView('lobby')}
+            stars={totalStarsCount}
+        >
+                    <div className="flex items-center gap-2 max-w-[90%] mx-auto z-20">
+                        <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-3 rounded-2xl font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center flex-1">
+                            {currentTask?.prompt}
+                        </div>
+                        <button 
+                            onClick={() => say(currentTask?.prompt || '')}
+                            className="mb-4 md:mb-6 p-3 bg-white text-brand-pink rounded-2xl shadow-lg border-b-4 border-slate-200 active:translate-y-1 active:border-b-0 transition-all hover:bg-slate-50"
+                        >
+                            <Volume2 size={24} />
+                        </button>
                     </div>
+
+                <div className="flex flex-col items-center w-full">
+                    {currentTask?.type === TaskType.COUNTING && (
+                        <CountingTask 
+                            question={currentTask.question as string[]}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.MATCHING && (
+                        <MatchingTask 
+                            question={currentTask.question as { count: number; icon: string }}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {(currentTask?.type === TaskType.ADDITION || currentTask?.type === TaskType.SUBTRACTION || currentTask?.type === TaskType.MULTIPLICATION || currentTask?.type === TaskType.DIVISION) && (
+                        <ArithmeticTask 
+                            type={currentTask.type}
+                            question={currentTask.question as any}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {(currentTask?.type === TaskType.SEQUENCE || currentTask?.type === TaskType.MISSING_NUMBER || currentTask?.type === TaskType.PATTERN) && (
+                        <SequenceTask 
+                            question={currentTask.type === TaskType.PATTERN 
+                                ? [...(currentTask.question as number[]), null] 
+                                : currentTask.question as (number | null)[]}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.COMPARISON && (
+                        <ComparisonTask 
+                            question={currentTask.question as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.ORDERING && (
+                        <OrderingTask 
+                            question={currentTask.question as number[]}
+                            prompt={currentTask.prompt}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.NUMBER_LINE && (
+                        <NumberLineTask 
+                            question={currentTask.question as { start: number; end: number }}
+                            answer={currentTask.answer as number}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.ALGEBRA && (
+                        <AlgebraTask 
+                            question={currentTask.question as string}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.GEOMETRY && (
+                        <GeometryTask 
+                            question={currentTask.question as string}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.COORDINATES && (
+                        <CoordinateTask 
+                            question={currentTask.question as { x: number; y: number }}
+                            options={currentTask.options as string[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.FUNCTIONS && (
+                        <FunctionTask 
+                            question={currentTask.question as string}
+                            options={currentTask.options as string[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.VISUAL_MULTIPLICATION && (
+                        <VisualMultiplicationTask 
+                            question={currentTask.question as any}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.WORD_PROBLEM && (
+                        <WordProblemTask 
+                            prompt={currentTask.prompt}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.MISSING_FACTOR && (
+                        <MissingFactorTask 
+                            question={currentTask.question as any}
+                            options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {!currentTask && (
+                        <div className="text-center py-20 text-slate-400 font-bold">
+                            Cargando desafío...
+                        </div>
+                    )}
+                </div>
+
+                {lastCorrect === true && (
+                    <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    >
+                        <div className="bg-brand-green text-white w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-8 border-white">
+                            <span className="text-6xl">✨</span>
+                        </div>
+                    </motion.div>
                 )}
-            </div>
 
-            {lastCorrect === true && (
-                <motion.div 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                >
-                    <div className="bg-brand-green text-white w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-8 border-white">
-                        <span className="text-6xl">✨</span>
-                    </div>
-                </motion.div>
-            )}
-
-            {lastCorrect === false && (
-                <motion.div 
-                    initial={{ x: -20 }}
-                    animate={{ x: [0, -10, 10, -10, 10, 0] }}
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                >
-                    <div className="bg-brand-pink text-white w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-8 border-white">
-                        <span className="text-6xl">❌</span>
-                    </div>
-                </motion.div>
-            )}
-        </div>
+                {lastCorrect === false && (
+                    <motion.div 
+                        initial={{ x: -20 }}
+                        animate={{ x: [0, -10, 10, -10, 10, 0] }}
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    >
+                        <div className="bg-brand-pink text-white w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-8 border-white">
+                            <span className="text-6xl">❌</span>
+                        </div>
+                    </motion.div>
+                )}
+        </GameLayout>
 
         <RewardModal 
             isOpen={showRewardModal}
@@ -532,6 +577,6 @@ export default function App() {
                 setView('lobby');
             }}
         />
-    </GameLayout>
+    </>
   );
 }

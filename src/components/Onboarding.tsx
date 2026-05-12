@@ -15,24 +15,26 @@ interface OnboardingProps {
 }
 
 export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmail }: OnboardingProps) {
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(isSignedIn ? 2 : 1);
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState('bear');
   const [startingWorld, setStartingWorld] = useState<GameWorld>('explorers');
 
   const worlds = [
-    { id: 'explorers', label: 'Exploradores', age: '5-7 años', icon: <Compass size={18} /> },
-    { id: 'adventurers', label: 'Aventureros', age: '8-10 años', icon: <Map size={18} /> },
-    { id: 'scholars', label: 'Tablas', age: 'Academia', icon: <GraduationCap size={18} /> },
-    { id: 'masters', label: 'Maestros', age: '11-13 años', icon: <Zap size={18} /> },
-    { id: 'legends', label: 'Leyendas', age: 'Secundaria', icon: <Rocket size={18} /> },
+    { id: 'explorers', label: 'Exploradores', age: '5-7 años', icon: <Compass size={18} />, color: 'bg-brand-blue' },
+    { id: 'adventurers', label: 'Aventureros', age: '8-10 años', icon: <Map size={18} />, color: 'bg-brand-green' },
+    { id: 'scholars', label: 'Tablas', age: 'Academia', icon: <GraduationCap size={18} />, color: 'bg-brand-purple' },
+    { id: 'masters', label: 'Maestros', age: '11-13 años', icon: <Zap size={18} />, color: 'bg-brand-orange' },
+    { id: 'legends', label: 'Leyendas', age: 'Secundaria', icon: <Rocket size={18} />, color: 'bg-brand-pink' },
   ];
 
   const availableAvatars = Object.entries(AVATAR_ICONS).filter((_, i) => isAdmin || i < 10);
   const lockedAvatars = Object.entries(AVATAR_ICONS).filter((_, i) => !isAdmin && i >= 10);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name.trim()) {
+  const handleNext = () => {
+    if (step === 2 && name.trim()) setStep(3);
+    else if (step === 3) setStep(4);
+    else if (step === 4) {
         onComplete(name.trim(), avatar, startingWorld);
     }
   };
@@ -49,23 +51,33 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
           <span className="text-brand-pink">LAND</span>
         </h1>
         <p className="text-white text-2xl font-bold italic mt-2 drop-shadow-md">
-          ¡Tu aventura matemática está por comenzar!
+          ¡Tu aventura matemática!
         </p>
       </motion.div>
 
       <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="glass-card w-full max-w-2xl p-8 md:p-12 overflow-y-auto max-h-[85vh] no-scrollbar"
+        key={step}
+        initial={{ scale: 0.9, opacity: 0, x: 20 }}
+        animate={{ scale: 1, opacity: 1, x: 0 }}
+        className="glass-card w-full max-w-2xl p-8 md:p-12 overflow-y-auto max-h-[85vh] no-scrollbar relative"
       >
-        {!isSignedIn ? (
+        {/* Progress Dots */}
+        <div className="flex justify-center gap-2 mb-8">
+            {[1, 2, 3, 4].map(s => (
+                <div key={s} className={cn(
+                    "w-3 h-3 rounded-full transition-all duration-500",
+                    step >= s ? "bg-brand-pink w-8" : "bg-white/20"
+                )} />
+            ))}
+        </div>
+
+        {step === 1 && (
           <div className="space-y-8 py-10">
             <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight">
               Bienvenido Explorador
             </h2>
             <p className="text-slate-500 font-bold text-lg">
-              Inicia sesión para guardar tu progreso en la nube y acceder a todos los niveles.
+              Inicia sesión para guardar tus estrellas y jugar en cualquier dispositivo.
             </p>
             <Button 
               onClick={onSignIn}
@@ -75,121 +87,124 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
               <LogIn className="w-8 h-8" /> ENTRAR CON GOOGLE
             </Button>
             <p className="text-slate-400 text-sm font-medium italic">
-              * El progreso se sincronizará automáticamente con tu cuenta.
+              * El progreso se sincronizará automáticamente.
             </p>
           </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-slate-100">
-                <div className="text-left">
-                    <p className="text-slate-400 text-xs font-black uppercase tracking-widest">Sesión Iniciada</p>
-                    <p className="text-brand-blue font-bold truncate max-w-[200px]">{userEmail}</p>
+        )}
+
+        {step === 2 && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tight">
+                    ¿Cómo te llamas?
+                </h2>
+                <div className="py-4">
+                    <input 
+                        type="text" 
+                        autoFocus
+                        placeholder="Escribe tu nombre..."
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        maxLength={15}
+                        className="w-full text-4xl md:text-5xl font-black text-brand-blue placeholder:text-slate-200 border-b-8 border-brand-blue/20 focus:border-brand-blue outline-none transition-all pb-4 text-center bg-transparent"
+                    />
                 </div>
-                {isAdmin && (
-                    <div className="bg-brand-yellow/10 text-brand-yellow px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-brand-yellow/20">
-                        Acceso Total
-                    </div>
-                )}
+                <Button 
+                    onClick={handleNext}
+                    size="xl" 
+                    className="w-full h-20 text-2xl font-black group mt-8"
+                    disabled={!name.trim()}
+                >
+                    CONTINUAR <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                </Button>
             </div>
+        )}
 
-            <h2 className="text-3xl font-black text-slate-800 mb-8 uppercase tracking-tight">
-              Configura tu perfil
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div>
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">¿Cómo te llamas?</h3>
-                <input 
-                  type="text" 
-                  placeholder="Tu nombre..."
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  maxLength={15}
-                  className="w-full text-3xl font-black text-brand-blue placeholder:text-slate-200 border-b-8 border-brand-blue/20 focus:border-brand-blue outline-none transition-all pb-4 text-center bg-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Elige tu personaje</h3>
-                <div className="grid grid-cols-5 gap-3">
+        {step === 3 && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tight">
+                    Elige tu Personaje
+                </h2>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                   {availableAvatars.map(([key, icon]) => (
                     <button
                       key={key}
-                      type="button"
                       onClick={() => setAvatar(key)}
                       className={cn(
                         "w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all relative overflow-hidden",
                         avatar === key 
-                          ? "bg-brand-yellow border-4 border-white shadow-lg scale-105 rotate-2 z-10" 
+                          ? "bg-brand-yellow border-4 border-white shadow-lg scale-110 rotate-3 z-10" 
                           : "bg-slate-100 hover:bg-slate-200 border-4 border-transparent"
                       )}
                     >
                       {icon}
-                      {avatar === key && (
-                        <motion.div layoutId="sparkle" className="absolute top-0 right-0 p-1">
-                            <Sparkles size={12} className="text-white fill-white" />
-                        </motion.div>
-                      )}
                     </button>
                   ))}
                   {lockedAvatars.map(([key]) => (
-                    <div
-                      key={key}
-                      className="w-full aspect-square rounded-2xl bg-slate-100/50 flex items-center justify-center text-slate-300 relative border-2 border-dashed border-slate-200 grayscale"
-                    >
+                    <div key={key} className="w-full aspect-square rounded-2xl bg-slate-100/50 flex items-center justify-center text-slate-300 border-2 border-dashed border-slate-200 grayscale opacity-50">
                         <Lock size={16} />
                     </div>
                   ))}
                 </div>
                 {!isAdmin && (
-                    <p className="mt-2 text-[10px] text-brand-pink font-bold uppercase tracking-wider">
-                        ★ Obtén acceso full para desbloquear +20 avatares adolescentes y especiales
+                    <p className="text-[11px] text-brand-pink font-bold uppercase tracking-wider">
+                        ★ +20 personajes especiales en la versión FULL
                     </p>
                 )}
-              </div>
+                <Button 
+                    onClick={handleNext}
+                    size="xl" 
+                    className="w-full h-20 text-2xl font-black group"
+                >
+                    CONTINUAR <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                </Button>
+            </div>
+        )}
 
-              <div>
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">¿Por dónde quieres empezar?</h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {step === 4 && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tight">
+                    Elige un Mundo
+                </h2>
+                <div className="grid grid-cols-1 gap-3">
                   {worlds.map((world) => (
                     <button
                       key={world.id}
-                      type="button"
                       onClick={() => setStartingWorld(world.id as GameWorld)}
                       className={cn(
-                        "flex flex-col items-center justify-center p-3 rounded-xl font-black text-[10px] transition-all border-b-4 h-24 gap-1",
+                        "flex items-center p-4 rounded-3xl font-black text-lg transition-all border-b-8 gap-4 text-left",
                         startingWorld === world.id
-                          ? "bg-brand-blue text-white border-brand-blue/30 scale-105"
+                          ? `${world.color} text-white border-black/20 scale-[1.02] shadow-xl`
                           : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
                       )}
                     >
                       <div className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center mb-1",
+                        "w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner",
                         startingWorld === world.id ? "bg-white/20" : "bg-slate-200"
                       )}>
                         {world.icon}
                       </div>
-                      <span className="uppercase tracking-tighter leading-none">{world.label}</span>
-                      <span className="opacity-50 text-[8px]">{world.age}</span>
+                      <div>
+                          <p className="uppercase tracking-tighter leading-none">{world.label}</p>
+                          <p className={cn("text-xs font-bold opacity-60 uppercase", startingWorld === world.id ? "text-white" : "text-slate-400")}>{world.age}</p>
+                      </div>
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider italic">
-                  * Desbloquearás los primeros niveles del mundo seleccionado
-                </p>
-              </div>
+                <Button 
+                    onClick={handleNext}
+                    size="xl" 
+                    className="w-full h-20 text-2xl font-black group bg-brand-pink hover:bg-brand-pink/90 text-white border-brand-pink/30"
+                >
+                    ¡A JUGAR AHORA! <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                </Button>
+            </div>
+        )}
 
-              <Button 
-                type="submit"
-                size="xl" 
-                className="w-full h-16 text-2xl font-black group"
-                disabled={!name.trim()}
-              >
-                ¡LISTO PARA JUGAR! <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
-              </Button>
-            </form>
-          </>
+        {isSignedIn && (
+           <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+               <span>Explorador: {userEmail}</span>
+               {isAdmin && <span className="text-brand-yellow">Premium</span>}
+           </div>
         )}
       </motion.div>
     </div>

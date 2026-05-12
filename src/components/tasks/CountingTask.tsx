@@ -13,11 +13,11 @@ export function CountingTask({ question, options, onAnswer }: CountingTaskProps)
   const count = question.length;
   
   // Dynamic sizing based on item count
-  const sizeClass = count > 80 ? 'w-8 h-8 text-lg md:w-12 md:h-12 md:text-2xl' :
-                    count > 50 ? 'w-10 h-10 text-xl md:w-14 md:h-14 md:text-3xl' : 
-                    count > 25 ? 'w-12 h-12 text-2xl md:w-16 md:h-16 md:text-4xl' :
-                    count > 12 ? 'w-16 h-16 text-3xl md:w-20 md:h-20 md:text-5xl' : 
-                    'w-20 h-20 text-4xl md:w-32 md:h-32 md:text-7xl';
+  const sizeClass = count > 80 ? 'w-8 h-8 text-lg md:w-10 md:h-10 md:text-xl' :
+                    count > 50 ? 'w-9 h-9 text-xl md:w-12 md:h-12 md:text-2xl' : 
+                    count > 25 ? 'w-10 h-10 text-2xl md:w-14 md:h-14 md:text-3xl' :
+                    count > 12 ? 'w-14 h-14 text-3xl md:w-18 md:h-18 md:text-4xl' : 
+                    'w-16 h-16 text-4xl md:w-24 md:h-24 md:text-6xl';
 
   return (
     <div className="text-center w-full flex flex-col items-center">

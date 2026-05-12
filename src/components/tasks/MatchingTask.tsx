@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Button } from '../ui/Button';
 
+import { cn } from '../../lib/utils';
+
 interface MatchingTaskProps {
   question: { count: number; icon: string };
   options: number[];
@@ -19,7 +21,10 @@ export function MatchingTask({ question, options, onAnswer }: MatchingTaskProps)
               initial={{ scale: 0, rotate: -20 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="text-6xl md:text-8xl drop-shadow-md"
+              className={cn(
+                "drop-shadow-md",
+                question.count > 10 ? "text-4xl md:text-6xl" : "text-6xl md:text-8xl"
+              )}
             >
               {question.icon}
             </motion.span>

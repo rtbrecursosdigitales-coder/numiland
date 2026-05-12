@@ -3,6 +3,8 @@ import { motion } from 'motion/react';
 import { Button } from '../ui/Button';
 import { Square, RectangleHorizontal } from 'lucide-react';
 
+import { cn } from '../../lib/utils';
+
 interface GeometryTaskProps {
   question: string;
   options: number[];

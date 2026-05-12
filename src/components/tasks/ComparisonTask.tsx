@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Button } from '../ui/Button';
+import { cn } from '../../lib/utils';
 
 interface ComparisonTaskProps {
   question: number[];
@@ -19,7 +20,10 @@ export function ComparisonTask({ question, onAnswer }: ComparisonTaskProps) {
             onClick={() => onAnswer(num)}
             className="bg-white rounded-[2.5rem] p-12 shadow-inner border-4 border-white/50 cursor-pointer flex flex-col items-center justify-center gap-6 group"
           >
-            <div className="text-8xl font-black text-brand-orange group-hover:scale-110 transition-transform">
+            <div className={cn(
+                "font-black text-brand-orange group-hover:scale-110 transition-transform",
+                num >= 100 ? "text-5xl md:text-7xl" : "text-7xl md:text-8xl"
+            )}>
               {num}
             </div>
           </motion.div>

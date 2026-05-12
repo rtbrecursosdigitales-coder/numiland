@@ -61,4 +61,5 @@ export interface UserProgress {
   completedLevelIds: number[];
   starsPerLevel: Record<number, number>;
   completionsPerLevel: Record<number, number>;
+  currentWorld?: GameWorld;
 }

@@ -15,6 +15,8 @@ interface LevelSelectorProps {
   onResetProgress: () => void;
   userName: string;
   avatar: string;
+  currentWorld?: GameWorld;
+  onWorldChange: (world: GameWorld) => void;
 }
 
 export function LevelSelector({ 
@@ -25,9 +27,20 @@ export function LevelSelector({
   onSelectAvatar,
   onResetProgress,
   userName,
-  avatar
+  avatar,
+  currentWorld = 'explorers',
+  onWorldChange
 }: LevelSelectorProps) {
-  const [selectedWorld, setSelectedWorld] = useState<GameWorld>('explorers');
+  const [selectedWorld, setSelectedWorld] = React.useState<GameWorld>(currentWorld);
+  
+  React.useEffect(() => {
+    setSelectedWorld(currentWorld);
+  }, [currentWorld]);
+
+  const handleWorldSelect = (world: GameWorld) => {
+    setSelectedWorld(world);
+    onWorldChange(world);
+  };
   const [showPrizes, setShowPrizes] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [logoError, setLogoError] = useState(false);
@@ -114,7 +127,7 @@ export function LevelSelector({
                 return (
                     <button
                         key={world.id}
-                        onClick={() => setSelectedWorld(world.id as GameWorld)}
+                        onClick={() => handleWorldSelect(world.id as GameWorld)}
                         className={cn(
                             "flex items-center gap-3 px-6 py-4 rounded-3xl transition-all border-b-8 active:translate-y-1 active:border-b-4 relative",
                             isActive 
