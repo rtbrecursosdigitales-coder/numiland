@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Button } from './ui/Button';
 import { AVATAR_ICONS } from '../constants';
 import { cn } from '../lib/utils';
-import { Sparkles, ArrowRight, LogIn, Lock, Compass, Map, Zap, Rocket, GraduationCap } from 'lucide-react';
+import { Sparkles, ArrowRight, LogIn, Lock, Compass, Map, Zap, Rocket, GraduationCap, Volume2 } from 'lucide-react';
 import { GameWorld } from '../types';
 
 interface OnboardingProps {
@@ -20,13 +20,65 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
   const [avatar, setAvatar] = useState('bear');
   const [startingWorld, setStartingWorld] = useState<GameWorld>('explorers');
 
+  // Auto-advance to step 2 when signed in
+  React.useEffect(() => {
+    if (isSignedIn && step === 1) {
+      setStep(2);
+    }
+  }, [isSignedIn, step]);
+
   const worlds = [
-    { id: 'explorers', label: 'Exploradores', age: '5-7 años', icon: <Compass size={18} />, color: 'bg-brand-blue' },
-    { id: 'adventurers', label: 'Aventureros', age: '8-10 años', icon: <Map size={18} />, color: 'bg-brand-green' },
-    { id: 'scholars', label: 'Tablas', age: 'Academia', icon: <GraduationCap size={18} />, color: 'bg-brand-purple' },
-    { id: 'masters', label: 'Maestros', age: '11-13 años', icon: <Zap size={18} />, color: 'bg-brand-orange' },
-    { id: 'legends', label: 'Leyendas', age: 'Secundaria', icon: <Rocket size={18} />, color: 'bg-brand-pink' },
+    { 
+      id: 'explorers', 
+      label: 'Exploradores', 
+      age: '5-7 años', 
+      icon: <Compass size={18} />, 
+      color: 'bg-brand-blue',
+      description: 'Fundamentos: Números del 1 al 100, conteo visual y sumas simples.'
+    },
+    { 
+      id: 'adventurers', 
+      label: 'Aventureros', 
+      age: '8-10 años', 
+      icon: <Map size={18} />, 
+      color: 'bg-brand-green',
+      description: 'Grandes Retos: Números hasta 1.000, multiplicación y lógica.'
+    },
+    { 
+      id: 'scholars', 
+      label: 'Tablas', 
+      age: 'Academia', 
+      icon: <GraduationCap size={18} />, 
+      color: 'bg-brand-purple',
+      description: '¡Domina las Tablas!: Del 1 al 10 con juegos y multivariables.'
+    },
+    { 
+      id: 'masters', 
+      label: 'Maestros', 
+      age: '11-13 años', 
+      icon: <Zap size={18} />, 
+      color: 'bg-brand-orange',
+      description: 'Poder Mental: Hasta 10.000, divisiones y cálculo avanzado.'
+    },
+    { 
+      id: 'legends', 
+      label: 'Leyendas', 
+      age: 'Secundaria', 
+      icon: <Rocket size={18} />, 
+      color: 'bg-brand-pink',
+      description: 'Dimensión X: Álgebra, geometría y coordenadas matemáticas.'
+    },
   ];
+
+  const speak = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-ES';
+      utterance.rate = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const availableAvatars = Object.entries(AVATAR_ICONS).filter((_, i) => isAdmin || i < 10);
   const lockedAvatars = Object.entries(AVATAR_ICONS).filter((_, i) => !isAdmin && i >= 10);
@@ -183,10 +235,27 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
                       )}>
                         {world.icon}
                       </div>
-                      <div>
-                          <p className="uppercase tracking-tighter leading-none">{world.label}</p>
-                          <p className={cn("text-xs font-bold opacity-60 uppercase", startingWorld === world.id ? "text-white" : "text-slate-400")}>{world.age}</p>
+                      <div className="flex-1 text-left">
+                          <p className="uppercase tracking-tighter leading-none text-sm font-black">{world.label}</p>
+                          <p className={cn("text-[10px] font-bold opacity-60 uppercase mb-1", startingWorld === world.id ? "text-white" : "text-slate-400")}>{world.age}</p>
+                          {world.description && (
+                            <p className={cn("text-[11px] font-medium leading-tight", startingWorld === world.id ? "text-white/90" : "text-slate-500")}>
+                              {world.description}
+                            </p>
+                          )}
                       </div>
+                      <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            speak(`${world.label}. ${world.description}`);
+                        }}
+                        className={cn(
+                            "p-2 rounded-full transition-colors",
+                            startingWorld === world.id ? "hover:bg-white/20 text-white" : "hover:bg-slate-100 text-slate-400"
+                        )}
+                      >
+                        <Volume2 size={16} />
+                      </button>
                     </button>
                   ))}
                 </div>

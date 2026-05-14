@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LevelInfo, Avatar, GameWorld } from '../types';
 import { Button } from './ui/Button';
-import { Lock, Star, Trophy, Grid2X2, Settings, User, X, Medal, Sparkles, HelpCircle, Rocket, Map, Compass, Zap, GraduationCap, RefreshCcw, LogOut } from 'lucide-react';
+import { Lock, Star, Trophy, Grid2X2, Settings, User, X, Medal, Sparkles, HelpCircle, Rocket, Map, Compass, Zap, GraduationCap, RefreshCcw, LogOut, Volume2 } from 'lucide-react';
 import { AVATAR_ICONS } from '../constants';
 import { cn, getStarTier } from '../lib/utils';
 
@@ -182,34 +182,52 @@ export function LevelSelector({
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: idx * 0.05 }}
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isUnlocked ? 1.05 : 1, y: isUnlocked ? -5 : 0 }}
+              whileTap={{ scale: isUnlocked ? 0.95 : 1 }}
               onClick={() => onSelectLevel(level.id)}
               className={cn(
-                "relative rounded-3xl p-3 md:p-4 flex flex-col items-center justify-center aspect-square transition-all cursor-pointer overflow-hidden",
+                "relative rounded-3xl p-3 md:p-4 flex flex-col items-center justify-center aspect-square transition-all overflow-hidden",
+                isUnlocked && "cursor-pointer",
                 level.isMaster && isUnlocked ? "bg-brand-orange/20 border-brand-orange/40 border-2 animate-pulse shadow-brand-orange/20" : "",
                 isUnlocked 
                   ? "bg-white/90 backdrop-blur-sm shadow-xl border-2 md:border-4 border-white" 
-                  : "bg-black/10 border-2 md:border-4 border-black/5"
+                  : level.lockType === 'payment'
+                    ? "bg-brand-pink/5 border-2 md:border-4 border-brand-pink/10"
+                    : "bg-black/5 border-2 md:border-4 border-black/5"
               )}
             >
               {!isUnlocked && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px] z-20">
-                  <Lock size={24} className="text-white/50" />
+                <div className={cn(
+                    "absolute inset-0 flex flex-col items-center justify-center backdrop-blur-[1px] z-20",
+                    level.lockType === 'payment' ? "bg-brand-pink/10" : "bg-black/10"
+                )}>
+                  {level.lockType === 'payment' ? (
+                    <>
+                        <Lock size={24} className="text-brand-pink/40" />
+                        <span className="text-[8px] font-black text-brand-pink/50 mt-2 tracking-widest">PREMIUM</span>
+                    </>
+                  ) : (
+                    <>
+                        <Lock size={20} className="text-slate-400/40" />
+                        <span className="text-[8px] font-black text-slate-400/50 mt-2 tracking-widest uppercase">Completa Niveles</span>
+                    </>
+                  )}
                 </div>
               )}
 
               <div className={cn(
-                "w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-xl md:text-2xl lg:text-3xl font-black text-white mb-2 md:mb-3 shadow-lg border-2 md:border-4 border-white/30",
+                "w-20 h-20 md:w-32 md:h-32 rounded-[2.5rem] flex flex-col items-center justify-center shadow-2xl border-6 md:border-[12px] border-white/50 mb-3 md:mb-6",
                 level.color
               )}>
-                {level.isMaster ? '★' : level.id}
+                <span className="text-4xl md:text-7xl font-black text-white drop-shadow-lg">
+                    {level.isMaster ? '★' : (level.id > 400 ? '?' : level.id % 100)}
+                </span>
               </div>
 
-              <div className="text-center">
+              <div className="text-center px-1">
                 <span className={cn(
-                    "text-[10px] md:text-sm font-black uppercase tracking-tight block mb-1 md:mb-2 leading-none",
-                    isUnlocked ? "text-slate-500" : "text-white/30"
+                    "text-sm md:text-xl font-black uppercase tracking-tight block mb-3 md:mb-5 leading-none drop-shadow-md",
+                    isUnlocked ? "text-slate-700" : "text-white/40"
                 )}>
                     {level.description || (level.isMaster ? 'MAESTRO' : `Hasta ${level.max}`)}
                 </span>
@@ -347,25 +365,81 @@ export function LevelSelector({
                         <Sparkles /> Los 5 Mundos
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                        <div className="bg-white/10 p-4 rounded-2xl">
-                            <h4 className="text-brand-blue font-black mb-1">EXPLORADORES (5-7)</h4>
-                            <p className="text-sm text-white/70">Números hasta 100, conteo visual, sumas y restas básicas.</p>
+                        <div className="bg-white/10 p-4 rounded-2xl border border-brand-blue/30">
+                            <h4 className="text-brand-blue font-black mb-1 flex items-center gap-2">
+                                <Compass size={18} /> EXPLORADORES (5-7 Años)
+                            </h4>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                Domina los números del <span className="text-brand-blue font-bold">1 al 100</span>. Aprenderás a contar, sumar y restar de forma visual y divertida.
+                            </p>
                         </div>
-                        <div className="bg-white/10 p-4 rounded-2xl">
-                            <h4 className="text-brand-green font-black mb-1">AVENTUREROS (8-10)</h4>
-                            <p className="text-sm text-white/70">Hasta 1.000, multiplicación, división y series complejas.</p>
+                        <div className="bg-white/10 p-4 rounded-2xl border border-brand-green/30">
+                            <h4 className="text-brand-green font-black mb-1 flex items-center gap-2">
+                                <Map size={18} /> AVENTUREROS (8-10 Años)
+                            </h4>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                El gran salto hasta el <span className="text-brand-green font-bold">1.000</span>. Los niveles suben de 10 en 10 hasta alcanzar la cima del conocimiento.
+                            </p>
                         </div>
                         <div className="bg-brand-purple/20 p-4 rounded-2xl border border-brand-purple/30">
-                            <h4 className="text-brand-purple font-black mb-1">TABLAS (Academia)</h4>
-                            <p className="text-sm text-white/70">Dominio de las tablas del 0 al 10 con problemas y retos visuales.</p>
+                            <h4 className="text-brand-purple font-black mb-1 flex items-center gap-2">
+                                <GraduationCap size={18} /> TABLAS (Academia)
+                            </h4>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                Conviértete en un experto de las tablas del <span className="text-brand-purple font-bold">0 al 10</span>. ¡El pilar de las matemáticas!
+                            </p>
                         </div>
-                        <div className="bg-white/10 p-4 rounded-2xl">
-                            <h4 className="text-brand-orange font-black mb-1">MAESTROS (11-13)</h4>
-                            <p className="text-sm text-white/70">Hasta 10.000, cálculo mental rápido y problemas aplicados.</p>
+                        <div className="bg-white/10 p-4 rounded-2xl border border-brand-orange/30">
+                            <h4 className="text-brand-orange font-black mb-1 flex items-center gap-2">
+                                <Zap size={18} /> MAESTROS (11-13 Años)
+                            </h4>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                ¡Poder total hasta el <span className="text-brand-orange font-bold">10.000</span>! Niveles que avanzan de 100 en 100 para un cálculo imparable.
+                            </p>
                         </div>
-                        <div className="bg-white/10 p-4 rounded-2xl">
-                            <h4 className="text-brand-pink font-black mb-1">LEYENDAS (Secundaria)</h4>
-                            <p className="text-sm text-white/70">Álgebra (incógnitas), Geometría, Coordenadas y Funciones.</p>
+                        <div className="bg-white/10 p-4 rounded-2xl border border-brand-pink/30 md:col-span-2">
+                            <h4 className="text-brand-pink font-black mb-1 flex items-center gap-2">
+                                <Rocket size={18} /> LEYENDAS (Secundaria)
+                            </h4>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                Bienvenido a la <span className="text-brand-pink font-bold">Dimensión X</span>. Álgebra, coordenadas y retos que solo las leyendas pueden resolver.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="bg-slate-900/80 p-8 rounded-[3rem] border-2 border-white/20 flex flex-col items-start text-left shadow-2xl backdrop-blur-xl">
+                    <h3 className="text-3xl font-black mb-4 uppercase flex items-center gap-3 text-brand-pink drop-shadow-sm">
+                        <Lock className="text-brand-pink" /> Sistema de Candados
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-brand-pink/20 p-3 rounded-2xl border-2 border-brand-pink/30">
+                                    <Lock size={24} className="text-brand-pink" />
+                                </div>
+                                <div>
+                                    <h4 className="text-brand-pink font-black uppercase text-sm">Candado Premium</h4>
+                                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Requiere Suscripción</p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                Estos niveles son exclusivos para usuarios Premium. Al suscribirte, desbloqueas los <span className="text-white font-bold italic">10 primeros niveles de cada mundo</span> al instante.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white/10 p-3 rounded-2xl border-2 border-white/20">
+                                    <Lock size={24} className="text-slate-400" />
+                                </div>
+                                <div>
+                                    <h4 className="text-slate-300 font-black uppercase text-sm">Candado de Progreso</h4>
+                                    <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Supera Desafíos</p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-white/70 leading-relaxed">
+                                Para abrir estos niveles debes completar los anteriores. Es el camino del aprendizaje: ¡Gana estrellas para avanzar!
+                            </p>
                         </div>
                     </div>
                 </section>

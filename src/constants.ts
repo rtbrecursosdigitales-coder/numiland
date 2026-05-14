@@ -32,13 +32,14 @@ export const LEVELS: LevelInfo[] = [
     const id = i + 101;
     const rangeMultiplier = Math.floor(i / 10) + 1;
     const max = Math.min(1000, rangeMultiplier * 100);
+    const stepInGroup = (i % 10) + 1;
     return {
       id,
       world: 'adventurers' as const,
       label: `Aventura ${id-100}`,
       min: 0,
       max,
-      description: `Hasta ${max}`,
+      description: `Hasta ${max - 100 + (stepInGroup * 10)}`, // More granular steps if possible, or just clearer
       color: colors[i % colors.length],
       unlocked: false,
       completed: false,
@@ -85,13 +86,14 @@ export const LEVELS: LevelInfo[] = [
     const id = i + 301;
     const rangeMultiplier = Math.floor(i / 10) + 1;
     const max = Math.min(10000, rangeMultiplier * 1000);
+    const stepInGroup = (i % 10) + 1;
     return {
       id,
       world: 'masters' as const,
       label: `Maestro ${id-300}`,
       min: 0,
       max,
-      description: `Hasta ${max}`,
+      description: `Hasta ${max - 1000 + (stepInGroup * 100)}`,
       color: colors[i % colors.length],
       unlocked: false,
       completed: false,

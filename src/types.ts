@@ -35,6 +35,7 @@ export interface LevelInfo {
   stars: number;
   isMaster?: boolean;
   targetTable?: number;
+  lockType?: 'none' | 'payment' | 'progression';
 }
 
 export interface GameTask {
@@ -63,4 +64,6 @@ export interface UserProgress {
   starsPerLevel: Record<number, number>;
   completionsPerLevel: Record<number, number>;
   currentWorld?: GameWorld;
+  paidWorldIds?: GameWorld[];
+  isFullAccess?: boolean;
 }

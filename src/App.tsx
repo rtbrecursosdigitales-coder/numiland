@@ -23,27 +23,30 @@ import { LEVELS, INITIAL_PROGRESS, TASKS_PER_LEVEL, MASTER_TASKS_COUNT } from '.
 import { UserProgress, TaskType, GameTask, Avatar, GameWorld } from './types';
 import confetti from 'canvas-confetti';
 import { GameLayout } from './components/GameLayout';
-import { motion } from 'motion/react';
+import { Profile } from './components/Profile';
+import { motion, AnimatePresence } from 'motion/react';
 import { auth, db, signInWithGoogle, logout } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Button } from './components/ui/Button';
-import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2, RefreshCcw } from 'lucide-react';
+import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2, RefreshCcw, Compass, Trophy, Zap, Rocket, X } from 'lucide-react';
 import { cn } from './lib/utils';
 import { say, stopSpeaking } from './lib/speech';
 
-// Link de Mercado Pago configurado por el usuario
-const MERCADO_PAGO_LINK = 'https://mpago.la/1FGeP6i'; 
+// Links de Mercado Pago
+const MP_SINGLE_WORLD_LINK = 'https://mpago.la/1FGeP6i'; 
+const MP_FULL_ACCESS_LINK = 'https://mpago.la/1mhLkmw';
 
 export default function App() {
   // --- AUTH & CLOUD STATE ---
   const [user, setUser] = useState<User | null>(null);
-  const [isPaid, setIsPaid] = useState<boolean>(false);
+  const [isPaid, setIsPaid] = useState<boolean>(false); // This will indicate Full Access
+  const [paidWorldIds, setPaidWorldIds] = useState<GameWorld[]>([]);
   const [loading, setLoading] = useState(true);
 
   // --- GAME STATE ---
   const [progress, setProgress] = useState<UserProgress>(INITIAL_PROGRESS);
-  const [view, setView] = useState<'onboarding' | 'lobby' | 'game' | 'payment'>('onboarding');
+  const [view, setView] = useState<'onboarding' | 'lobby' | 'game' | 'payment' | 'profile'>('onboarding');
   const [currentLevelId, setCurrentLevelId] = useState<number | null>(null);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [tasks, setTasks] = useState<GameTask[]>([]);
@@ -77,13 +80,11 @@ export default function App() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const isSuccess = urlParams.get('payment') === 'success';
 
-                // Listen to Firestore for this user
                 const userRef = doc(db, 'users', currentUser.uid);
                 
                 if (isSuccess) {
                     await setDoc(userRef, { isPaid: true }, { merge: true });
                     setIsPaid(true);
-                    // Clear URL params
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
@@ -91,17 +92,26 @@ export default function App() {
                 
                 if (userSnap.exists()) {
                     const userData = userSnap.data();
-                    setIsPaid(userData.isPaid || currentUser.email === 'rtb.recursosdigitales@gmail.com');
+                    const fullAccess = userData.isPaid || userData.isFullAccess || currentUser.email === 'rtb.recursosdigitales@gmail.com';
+                    setIsPaid(fullAccess);
+                    const paidWorlds = userData.paidWorldIds || [];
+                    setPaidWorldIds(paidWorlds);
+
                     setProgress(prev => ({
                         ...prev,
                         ...userData,
                         avatar: userData.avatar as Avatar || 'bear',
                         name: userData.name || '',
                         currentWorld: userData.currentWorld as GameWorld || 'explorers',
+                        isFullAccess: fullAccess,
+                        paidWorldIds: paidWorlds
                     }));
-                    if (userData.name) setView('lobby');
+                    if (userData.name) {
+                        setView('lobby');
+                    } else {
+                        setView('onboarding');
+                    }
                 } else {
-                    // New user - checking if they are admin to give auto-pay
                     setIsPaid(currentUser.email === 'rtb.recursosdigitales@gmail.com');
                     setView('onboarding');
                 }
@@ -112,18 +122,19 @@ export default function App() {
             }
         } catch (error) {
             console.error('Error in auth observer:', error);
-            // Default to onboarding on error
             setView('onboarding');
         } finally {
             clearTimeout(timeoutId);
             setLoading(false);
         }
     });
+
     return () => {
         unsubscribe();
         clearTimeout(timeoutId);
     };
   }, []);
+
 
   // --- CLOUD SYNC ---
   const syncProgress = async (newProgress: UserProgress) => {
@@ -149,15 +160,48 @@ export default function App() {
   }, [progress.starsPerLevel]);
 
   const levelInfoList = useMemo(() => {
-    const isAdmin = user?.email === 'rtb.recursosdigitales@gmail.com';
-    return LEVELS.map(l => ({
-        ...l,
-        unlocked: isAdmin || progress.unlockedLevelIds.includes(l.id),
-        completed: progress.completedLevelIds.includes(l.id),
-        stars: progress.starsPerLevel[l.id] || 0,
-        completions: progress.completionsPerLevel[l.id] || 0
-    }));
-  }, [progress, user]);
+    return LEVELS.map(l => {
+        const isFirst10OfWorld = 
+            (l.id >= 1 && l.id <= 10) ||
+            (l.id >= 101 && l.id <= 110) ||
+            (l.id >= 201 && l.id <= 210) ||
+            (l.id >= 301 && l.id <= 310) ||
+            (l.id >= 401 && l.id <= 410);
+
+        let lockType: 'none' | 'payment' | 'progression' = 'none';
+        let unlocked = false;
+
+        if (isPaid || paidWorldIds.includes(l.world)) {
+            if (isFirst10OfWorld || progress.unlockedLevelIds.includes(l.id)) {
+                unlocked = true;
+                lockType = 'none';
+            } else {
+                unlocked = false;
+                lockType = 'progression';
+            }
+        } else {
+            // Free user
+            // Allow explorers world first 10
+            const isFreeUnlocked = (l.world === 'explorers' && (l.id <= 10 || progress.unlockedLevelIds.includes(l.id)));
+            if (isFreeUnlocked) {
+                unlocked = true;
+                lockType = 'none';
+            } else {
+                unlocked = false;
+                lockType = 'payment';
+            }
+        }
+
+        return {
+            ...l,
+            unlocked,
+            lockType,
+            completed: progress.completedLevelIds.includes(l.id),
+            stars: progress.starsPerLevel[l.id] || 0,
+            completions: progress.completionsPerLevel[l.id] || 0
+        };
+    });
+  }, [progress, isPaid]);
 
   // --- VOICE ---
   useEffect(() => {
@@ -210,28 +254,60 @@ export default function App() {
     return () => clearInterval(interval);
   }, [view, timeLeft, showRewardModal, showGameOverModal]);
 
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+
   // --- ACTIONS ---
-  const handleStartLevel = (levelId: number) => {
-    // Permitir el acceso si el usuario ha pagado o si el nivel está en su lista de desbloqueados iniciales.
-    // Si no ha pagado, bloqueamos el acceso si el nivel no está desbloqueado o si intenta ir más allá de los niveles de prueba.
-    const isInitiallyUnlocked = progress.unlockedLevelIds.includes(levelId);
-    
-    // Si no ha pagado, verificamos límites
-    if (!isPaid) {
-        if (!isInitiallyUnlocked) {
-            setView('payment');
-            return;
+  const handleCheckPayment = async () => {
+    if (!user) return;
+    setIsCheckingPayment(true);
+    try {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const fullAccess = userData.isPaid || userData.isFullAccess;
+            const paidWorlds = userData.paidWorldIds || [];
+            
+            setIsPaid(fullAccess);
+            setPaidWorldIds(paidWorlds);
+            
+            setProgress(prev => ({
+                ...prev,
+                isFullAccess: fullAccess,
+                paidWorldIds: paidWorlds
+            }));
+            
+            if (fullAccess || (progress.currentWorld && paidWorlds.includes(progress.currentWorld))) {
+                setView('lobby');
+            } else {
+                setIsCheckingPayment(false);
+            }
+        } else {
+            setIsCheckingPayment(false);
         }
-
-        const completions = progress.completionsPerLevel[levelId] || 0;
-        if (completions >= 10) {
-            setView('payment');
-            return;
-        }
+    } catch (e) {
+        console.error(e);
+        setIsCheckingPayment(false);
     }
+  };
 
-    const level = LEVELS.find(l => l.id === levelId);
+  const handleInformPaymentWhatsApp = () => {
+    const message = encodeURIComponent(`Hola! Ya realicé el pago de Matemágicos para la cuenta ${user?.email}. ¿Podrían activarlo manualmente?`);
+    window.open(`https://wa.me/5491123456789?text=${message}`, '_blank');
+  };
+  const handleStartLevel = (levelId: number) => {
+    const level = levelInfoList.find(l => l.id === levelId);
     if (!level) return;
+
+    if (!level.unlocked) {
+        if (level.lockType === 'payment') {
+            setView('payment');
+        }
+        return;
+    }
 
     setCurrentLevelId(levelId);
     setCurrentTaskIndex(0);
@@ -402,56 +478,149 @@ export default function App() {
         </div>
     );
   } else if (view === 'payment') {
+    const currentWorldLabel = progress.currentWorld === 'explorers' ? 'Exploradores' : 
+                             progress.currentWorld === 'adventurers' ? 'Aventureros' :
+                             progress.currentWorld === 'scholars' ? 'Tablas' :
+                             progress.currentWorld === 'masters' ? 'Maestros' : 'Leyendas';
+
     mainContent = (
-        <div className="immersive-bg min-h-screen flex items-center justify-center p-6">
-            <div className="glass-card max-w-lg w-full p-12 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-brand-pink" />
-                <div className="bg-brand-pink/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <Lock className="text-brand-pink w-12 h-12" />
-                </div>
-                <h2 className="text-4xl font-black text-slate-800 mb-4 uppercase tracking-tight text-left">Versión Premium</h2>
-                <p className="text-slate-500 font-bold mb-10 text-lg leading-relaxed text-left">
-                    ¡Libera todo el poder de <span className="text-brand-pink font-black">NUMILAND</span>! Obtén acceso ilimitado a:
-                    <br /><br />
-                    🌍 <span className="text-brand-blue">5 Mundos Increíbles</span><br />
-                    🏆 <span className="text-brand-green">500 Niveles de Aventura</span><br />
-                    🎮 <span className="text-brand-orange">Más de 2500 Minijuegos</span><br />
-                    ✨ <span className="text-brand-purple">Acceso de por vida a todo el contenido</span><br />
-                    📱 <span className="text-brand-pink font-black uppercase">Instalación Premium</span>: Descarga la app y juega sin conexión sin perder tu progreso.
-                </p>
-                <div className="space-y-4">
-                    <Button 
-                        size="xl" 
-                        className="w-full h-20 text-xl md:text-2xl font-black gap-3 bg-brand-yellow hover:bg-brand-yellow/90 text-slate-800 border-brand-yellow/30"
-                        onClick={() => window.open(MERCADO_PAGO_LINK, '_blank')}
-                    >
-                        <ExternalLink className="w-8 h-8" /> MERCADO PAGO
-                    </Button>
-                    <Button 
-                        variant="outline"
-                        size="lg"
-                        className="w-full h-16 text-xl font-black gap-3 border-brand-yellow text-brand-yellow"
-                        onClick={() => window.location.reload()}
-                    >
-                        <RefreshCcw className="w-6 h-6" /> YA REALICÉ EL PAGO
-                    </Button>
-                    <Button 
-                        size="lg" 
-                        variant="secondary"
-                        className="w-full h-16 text-xl font-bold gap-3"
-                        onClick={() => window.open(`https://wa.me/5492233440067?text=Hola! Quiero comprar el acceso full para Numiland. Mi email es: ${user?.email}`, '_blank')}
-                    >
-                        <MessageCircle className="w-6 h-6" /> PAGAR POR TRANSFERENCIA
-                    </Button>
-                    <Button 
-                        variant="outline" 
-                        size="lg" 
-                        className="w-full"
-                        onClick={() => setView('lobby')}
-                    >
-                        VOLVER AL LOBBY
-                    </Button>
-                </div>
+        <div className="min-h-screen bg-brand-periwinkle flex items-center justify-center p-4">
+            <div className="glass-card max-w-3xl w-full p-8 md:p-14 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-brand-pink via-brand-orange to-brand-yellow" />
+                
+                {/* Botón Cerrar */}
+                <button 
+                    onClick={() => setView('lobby')}
+                    className="absolute top-6 right-6 p-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-slate-500 hover:text-slate-800 transition-all z-20 group"
+                >
+                    <X size={24} className="group-hover:rotate-90 transition-transform" />
+                </button>
+                
+                <AnimatePresence mode="wait">
+                    {isCheckingPayment ? (
+                        <motion.div 
+                            key="checking"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="py-16 flex flex-col items-center"
+                        >
+                            <div className="w-28 h-28 border-[12px] border-brand-yellow/20 border-t-brand-yellow rounded-full animate-spin mb-10" />
+                            <h2 className="text-4xl font-black text-slate-800 uppercase mb-4 tracking-tight">Verificando Pago</h2>
+                            <p className="text-slate-500 text-xl font-medium italic">Esto solo tomará un momento...</p>
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            key="info"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="space-y-10"
+                        >
+                            <div className="inline-block p-8 bg-brand-pink/10 rounded-[3.5rem] mb-2 shadow-inner">
+                                <Lock size={80} className="text-brand-pink" />
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <h2 className="text-5xl md:text-6xl font-black text-slate-800 uppercase tracking-tighter leading-none">Versión Premium</h2>
+                                <p className="text-slate-600 leading-relaxed text-xl md:text-2xl font-medium max-w-2xl mx-auto">
+                                    ¡Libera todo el poder de <span className="text-brand-pink font-black uppercase tracking-tight">NumiLand</span>!
+                                </p>
+                                
+                                <div className="space-y-6 max-w-lg mx-auto py-8">
+                                    <div className="flex items-center gap-6 group">
+                                        <div className="w-20 h-20 bg-brand-blue rounded-3xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform">
+                                            <Compass size={40} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-3xl font-black text-slate-800 leading-none">5 Mundos Increíbles</p>
+                                            <p className="text-slate-500 text-lg font-bold">Exploración total garantizada</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6 group">
+                                        <div className="w-20 h-20 bg-brand-green rounded-3xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform">
+                                            <Trophy size={40} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-3xl font-black text-slate-800 leading-none">500 Niveles de Aventura</p>
+                                            <p className="text-slate-500 text-lg font-bold">Desafíos que crecen contigo</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6 group">
+                                        <div className="w-20 h-20 bg-brand-orange rounded-3xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform">
+                                            <Zap size={40} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-3xl font-black text-slate-800 leading-none">+2500 Minijuegos</p>
+                                            <p className="text-slate-500 text-lg font-bold">Diversión infinita asegurada</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6 group">
+                                        <div className="w-20 h-20 bg-brand-pink rounded-3xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform">
+                                            <Rocket size={40} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-3xl font-black text-slate-800 leading-none">Instalación Simple</p>
+                                            <p className="text-slate-500 text-lg font-bold">Sin ocupar memoria en tu celular</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    <div className="flex-1 p-8 bg-brand-yellow/5 rounded-[3rem] border-4 md:border-8 border-brand-yellow flex flex-col items-center relative overflow-hidden group shadow-2xl">
+                                        <div className="absolute top-0 right-0 bg-brand-yellow text-white text-[10px] font-black px-5 py-2 rounded-bl-2xl uppercase tracking-tighter">MEJOR VALOR</div>
+                                        <span className="text-xs font-black text-brand-orange uppercase tracking-[0.2em] mb-3">Acceso Total</span>
+                                        <h4 className="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight">Todos los Mundos</h4>
+                                        <Button 
+                                            size="xl" 
+                                            className="w-full h-20 text-xl font-black shadow-2xl bg-brand-yellow hover:bg-brand-orange text-white border-b-8 border-black/10 active:border-b-0 active:translate-y-2" 
+                                            onClick={() => window.open(MP_FULL_ACCESS_LINK, '_blank')}
+                                        >
+                                            DESBLOQUEAR TODO
+                                        </Button>
+                                    </div>
+
+                                    <div className="flex-1 p-8 bg-white rounded-[3rem] border-4 border-slate-100 flex flex-col items-center shadow-lg">
+                                        <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Opción Individual</span>
+                                        <h4 className="text-2xl font-black text-slate-700 mb-6">Mundo {currentWorldLabel}</h4>
+                                        <Button 
+                                            size="xl" 
+                                            className="w-full h-20 text-lg font-black shadow-xl" 
+                                            onClick={() => window.open(MP_SINGLE_WORLD_LINK, '_blank')}
+                                        >
+                                            DESBLOQUEAR ESTE MUNDO
+                                        </Button>
+                                    </div>
+                                </div>
+                                
+                                <div className="pt-8 space-y-4">
+                                    <Button 
+                                        variant="outline" 
+                                        size="xl" 
+                                        className="w-full h-20 text-2xl font-black gap-4 border-slate-200 text-slate-700 hover:bg-slate-50 shadow-md"
+                                        onClick={handleCheckPayment}
+                                    >
+                                        <RefreshCcw className="w-8 h-8" /> YA REALICÉ EL PAGO
+                                    </Button>
+
+                                    <Button 
+                                        variant="ghost" 
+                                        size="lg" 
+                                        className="text-slate-400 hover:text-brand-green font-black text-base uppercase tracking-[0.15em] gap-3"
+                                        onClick={handleInformPaymentWhatsApp}
+                                    >
+                                        <MessageCircle size={24} /> ¿Problemas? Informar pago por WhatsApp
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <button onClick={() => setView('lobby')} className="text-slate-400 font-black text-lg uppercase tracking-[0.2em] hover:text-slate-600 transition-colors py-4">
+                                ← Volver al Mapa de Niveles
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
@@ -460,7 +629,7 @@ export default function App() {
         <Onboarding 
             isSignedIn={!!user}
             userEmail={user?.email}
-            isAdmin={isPaid}
+            isAdmin={isPaid || paidWorldIds.length > 0}
             onSignIn={signInWithGoogle}
             onComplete={(name, avatar, startingWorld) => {
                 let startId = 1;
@@ -528,7 +697,7 @@ export default function App() {
                 starsPerLevel={progress.starsPerLevel}
                 completionsPerLevel={progress.completionsPerLevel}
                 onSelectLevel={handleStartLevel}
-                onSelectAvatar={() => setView('onboarding')}
+                onSelectAvatar={() => setView('profile')}
                 onResetProgress={handleResetProgress}
                 userName={progress.name}
                 avatar={progress.avatar}
@@ -548,6 +717,22 @@ export default function App() {
                 </p>
             </div>
         </div>
+    );
+  } else if (view === 'profile') {
+    mainContent = (
+        <Profile 
+            progress={progress}
+            totalStars={totalStarsCount}
+            isPaid={isPaid || paidWorldIds.length > 0}
+            userEmail={user?.email || null}
+            onSave={(name, avatar) => {
+                const newProgress = { ...progress, name, avatar };
+                setProgress(newProgress);
+                syncProgress(newProgress);
+                setView('lobby');
+            }}
+            onClose={() => setView('lobby')}
+        />
     );
   } else {
     // view === 'game'
