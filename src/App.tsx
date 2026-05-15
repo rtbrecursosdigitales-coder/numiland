@@ -43,6 +43,7 @@ export default function App() {
   const [isPaid, setIsPaid] = useState<boolean>(false); // This will indicate Full Access
   const [paidWorldIds, setPaidWorldIds] = useState<GameWorld[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(true);
 
   // --- GAME STATE ---
   const [progress, setProgress] = useState<UserProgress>(INITIAL_PROGRESS);
@@ -93,45 +94,65 @@ export default function App() {
                 if (userSnap.exists()) {
                     const userData = userSnap.data();
                     const fullAccess = userData.isPaid || userData.isFullAccess || currentUser.email === 'rtb.recursosdigitales@gmail.com';
-                    setIsPaid(fullAccess);
                     const paidWorlds = userData.paidWorldIds || [];
+                    
+                    setIsPaid(fullAccess);
                     setPaidWorldIds(paidWorlds);
 
-                    setProgress(prev => ({
-                        ...prev,
+                    setProgress({
                         ...userData,
                         avatar: userData.avatar as Avatar || 'bear',
                         name: userData.name || '',
                         currentWorld: userData.currentWorld as GameWorld || 'explorers',
                         isFullAccess: fullAccess,
                         paidWorldIds: paidWorlds
-                    }));
+                    } as UserProgress);
+
                     if (userData.name) {
                         setView('lobby');
                     } else {
                         setView('onboarding');
                     }
                 } else {
-                    setIsPaid(currentUser.email === 'rtb.recursosdigitales@gmail.com');
+                    const isAdminByEmail = currentUser.email === 'rtb.recursosdigitales@gmail.com';
+                    setIsPaid(isAdminByEmail);
+                    setProgress(prev => ({
+                        ...prev,
+                        isFullAccess: isAdminByEmail
+                    }));
                     setView('onboarding');
                 }
             } else {
                 setIsPaid(false);
+                setPaidWorldIds([]);
                 setProgress(INITIAL_PROGRESS);
                 setView('onboarding');
             }
         } catch (error) {
             console.error('Error in auth observer:', error);
-            setView('onboarding');
+            // On error, let's try to keep current view if possible or default safely
         } finally {
-            clearTimeout(timeoutId);
             setLoading(false);
+            clearTimeout(timeoutId);
         }
     });
 
     return () => {
         unsubscribe();
         clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
@@ -694,6 +715,13 @@ export default function App() {
                         <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Instalar App</span>
                     </button>
                 )}
+
+                {!isOnline && (
+                    <div className="bg-slate-800/80 backdrop-blur-sm text-white p-2 rounded-full shadow-lg border-2 border-slate-600 flex items-center gap-2 px-4 animate-pulse">
+                        <Zap size={16} className="text-brand-yellow" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Modo Offline</span>
+                    </div>
+                )}
             </div>
 
             <LevelSelector 
@@ -900,6 +928,30 @@ export default function App() {
                     </motion.div>
                 )}
         </GameLayout>
+    );
+  }
+
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-brand-blue flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-32 h-32 mb-8 animate-bounce">
+                <img src="/logo.svg" alt="Numiland Logo" className="w-full h-full" />
+            </div>
+            <div className="space-y-4">
+                <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Numiland</h1>
+                <div className="flex flex-col items-center gap-4 justify-center">
+                    <div className="flex items-center gap-2">
+                        <RefreshCcw className="text-brand-yellow animate-spin" size={24} />
+                        <p className="text-white/80 font-bold uppercase tracking-widest text-xs">Preparando aventura...</p>
+                    </div>
+                    {!isOnline && (
+                        <div className="bg-white/10 px-4 py-2 rounded-full border border-white/20">
+                            <p className="text-white text-[10px] font-black uppercase tracking-widest">Modo Offline Activo</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
   }
 
