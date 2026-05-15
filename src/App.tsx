@@ -46,8 +46,29 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(true);
 
   // --- GAME STATE ---
-  const [progress, setProgress] = useState<UserProgress>(INITIAL_PROGRESS);
-  const [view, setView] = useState<'onboarding' | 'lobby' | 'game' | 'payment' | 'profile'>('onboarding');
+  const [progress, setProgress] = useState<UserProgress>(() => {
+    const saved = localStorage.getItem('numiland_progress');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return INITIAL_PROGRESS;
+      }
+    }
+    return INITIAL_PROGRESS;
+  });
+  const [view, setView] = useState<'onboarding' | 'lobby' | 'game' | 'payment' | 'profile'>(() => {
+    const saved = localStorage.getItem('numiland_progress');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        return data.name ? 'lobby' : 'onboarding';
+      } catch (e) {
+        return 'onboarding';
+      }
+    }
+    return 'onboarding';
+  });
   const [currentLevelId, setCurrentLevelId] = useState<number | null>(null);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [tasks, setTasks] = useState<GameTask[]>([]);
@@ -99,14 +120,17 @@ export default function App() {
                     setIsPaid(fullAccess);
                     setPaidWorldIds(paidWorlds);
 
-                    setProgress({
+                    const finalProgress = {
                         ...userData,
                         avatar: userData.avatar as Avatar || 'bear',
                         name: userData.name || '',
                         currentWorld: userData.currentWorld as GameWorld || 'explorers',
                         isFullAccess: fullAccess,
                         paidWorldIds: paidWorlds
-                    } as UserProgress);
+                    } as UserProgress;
+
+                    setProgress(finalProgress);
+                    localStorage.setItem('numiland_progress', JSON.stringify(finalProgress));
 
                     if (userData.name) {
                         setView('lobby');
@@ -116,17 +140,29 @@ export default function App() {
                 } else {
                     const isAdminByEmail = currentUser.email === 'rtb.recursosdigitales@gmail.com';
                     setIsPaid(isAdminByEmail);
-                    setProgress(prev => ({
-                        ...prev,
-                        isFullAccess: isAdminByEmail
-                    }));
-                    setView('onboarding');
+                    setProgress(prev => {
+                        const newP = { ...prev, isFullAccess: isAdminByEmail };
+                        localStorage.setItem('numiland_progress', JSON.stringify(newP));
+                        return newP;
+                    });
+                    
+                    if (!progress.name) {
+                        setView('onboarding');
+                    }
                 }
             } else {
-                setIsPaid(false);
-                setPaidWorldIds([]);
-                setProgress(INITIAL_PROGRESS);
-                setView('onboarding');
+                if (!isOnline && progress.name) {
+                    // Stay in lobby if offline and we have a name
+                    console.log('Offline: using local state');
+                } else {
+                    setIsPaid(false);
+                    setPaidWorldIds([]);
+                    const saved = localStorage.getItem('numiland_progress');
+                    if (!saved) {
+                        setProgress(INITIAL_PROGRESS);
+                        setView('onboarding');
+                    }
+                }
             }
         } catch (error) {
             console.error('Error in auth observer:', error);
@@ -159,6 +195,9 @@ export default function App() {
 
   // --- CLOUD SYNC ---
   const syncProgress = async (newProgress: UserProgress) => {
+    // Local first
+    localStorage.setItem('numiland_progress', JSON.stringify(newProgress));
+    
     if (!user) return;
     try {
         const userRef = doc(db, 'users', user.uid);
