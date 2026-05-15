@@ -35,31 +35,31 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="glass-card max-w-2xl w-full overflow-hidden relative"
+        className="glass-card max-w-2xl w-full max-h-[90vh] overflow-y-auto relative no-scrollbar"
       >
         {/* Header Decor */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-brand-blue/10 to-transparent pointer-events-none" />
         
-        <div className="p-8 md:p-12 relative z-10">
-          <div className="flex justify-between items-start mb-8">
+        <div className="p-5 md:p-10 relative z-10">
+          <div className="flex justify-between items-start mb-6 md:mb-8">
             <button 
                 onClick={onClose} 
-                className="p-3 bg-white/50 hover:bg-white rounded-2xl transition-all shadow-sm group"
+                className="p-2 md:p-3 bg-white/50 hover:bg-white rounded-2xl transition-all shadow-sm group"
             >
-                <ArrowLeft size={24} className="text-slate-600 group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft size={20} className="text-slate-600 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="text-center flex-1">
-                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tighter">Mi Perfil</h2>
-                <div className="flex items-center justify-center gap-2 mt-1">
+                <h2 className="text-2xl md:text-4xl font-black text-slate-800 uppercase tracking-tighter">Mi Perfil</h2>
+                <div className="flex items-center justify-center gap-2 mt-0.5">
                     <div className={cn(
-                        "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border shadow-sm",
+                        "text-[8px] md:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 md:px-3 md:py-1 rounded-full border shadow-sm",
                         isPaid ? "bg-brand-yellow/20 border-brand-yellow text-brand-orange" : "bg-slate-100 border-slate-200 text-slate-400"
                     )}>
                         {isPaid ? 'Explorador Premium' : 'Explorador Free'}
                     </div>
                 </div>
             </div>
-            <div className="w-12 h-12" /> {/* Spacer */}
+            <div className="w-10 h-10 md:w-12 md:h-12" /> {/* Spacer */}
           </div>
 
           <AnimatePresence mode="wait">
@@ -72,38 +72,38 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                 className="flex flex-col items-center"
               >
                 {/* Avatar Display */}
-                <div className="relative group mb-6">
-                    <div className="w-48 h-48 md:w-56 md:h-56 bg-white rounded-[3.5rem] flex items-center justify-center text-8xl md:text-9xl shadow-2xl border-8 border-white relative overflow-hidden group-hover:scale-105 transition-transform">
+                <div className="relative group mb-4 md:mb-6">
+                    <div className="w-32 h-32 md:w-56 md:h-56 bg-white rounded-[2.5rem] md:rounded-[3.5rem] flex items-center justify-center text-6xl md:text-9xl shadow-2xl border-4 md:border-8 border-white relative overflow-hidden group-hover:scale-105 transition-transform">
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-blue/5 to-transparent" />
                         {AVATAR_ICONS[progress.avatar]}
                     </div>
                     <button 
                         onClick={() => setIsEditing(true)}
-                        className="absolute bottom-2 right-2 p-4 bg-brand-pink text-white rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-white"
+                        className="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-2.5 md:p-4 bg-brand-pink text-white rounded-xl md:rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-2 md:border-4 border-white"
                     >
-                        <Pencil size={24} />
+                        <Pencil size={18} className="md:w-6 md:h-6" />
                     </button>
                 </div>
 
                 {/* Name Display */}
-                <div className="flex items-center gap-3 mb-8">
-                    <h3 className="text-5xl font-black text-slate-800 tracking-tight">{progress.name}</h3>
+                <div className="flex items-center gap-3 mb-6 md:mb-8">
+                    <h3 className="text-3xl md:text-5xl font-black text-slate-800 tracking-tight">{progress.name}</h3>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-4 w-full">
-                    <div className="bg-white/60 p-6 rounded-[2.5rem] shadow-sm border-2 border-white flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-2 text-brand-yellow mb-1">
-                            <Star className="fill-brand-yellow" size={24} />
-                            <span className="text-2xl font-black">{totalStars}</span>
+                <div className="grid grid-cols-2 gap-3 md:gap-4 w-full">
+                    <div className="bg-white/60 p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border-2 border-white flex flex-col items-center gap-0.5 md:gap-1">
+                        <div className="flex items-center gap-2 text-brand-yellow mb-0.5">
+                            <Star className="fill-brand-yellow w-5 h-5 md:w-6 md:h-6" />
+                            <span className="text-xl md:text-2xl font-black">{totalStars}</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Estrellas</span>
+                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400">Estrellas</span>
                     </div>
-                    <div className="bg-white/60 p-6 rounded-[2.5rem] shadow-sm border-2 border-white flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-2 text-brand-blue mb-1">
-                            <Mail size={24} />
+                    <div className="bg-white/60 p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border-2 border-white flex flex-col items-center gap-0.5 md:gap-1">
+                        <div className="flex items-center gap-2 text-brand-blue mb-0.5">
+                            <Mail className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
-                        <span className="text-[10px] font-medium text-slate-500 truncate w-full text-center px-2">{userEmail}</span>
+                        <span className="text-[8px] md:text-[10px] font-medium text-slate-500 truncate w-full text-center px-2">{userEmail}</span>
                     </div>
                 </div>
 
@@ -111,49 +111,49 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 w-full p-6 bg-gradient-to-br from-brand-pink via-brand-orange to-brand-yellow rounded-[2.5rem] shadow-xl text-white flex flex-col items-center gap-4 border-4 border-white/20"
+                        className="mt-4 md:mt-6 w-full p-4 md:p-6 bg-gradient-to-br from-brand-pink via-brand-orange to-brand-yellow rounded-[2rem] md:rounded-[2.5rem] shadow-xl text-white flex flex-col items-center gap-3 md:gap-4 border-2 md:border-4 border-white/20"
                     >
-                        <div className="flex items-center gap-4">
-                            <Rocket className="animate-bounce" size={32} />
-                            <span className="text-2xl font-black uppercase tracking-tighter">App Premium</span>
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <Rocket className="animate-bounce w-6 h-6 md:w-8 md:h-8" />
+                            <span className="text-xl md:text-2xl font-black uppercase tracking-tighter">App Premium</span>
                         </div>
                         
                         {canInstall ? (
                             <>
-                                <p className="text-sm font-bold text-white text-center leading-tight">¡Genial! Tienes acceso total. Instala la app para jugar donde quieras sin conexión.</p>
+                                <p className="text-xs md:text-sm font-bold text-white text-center leading-tight">¡Genial! Tienes acceso total. Instala la app para jugar donde quieras sin conexión.</p>
                                 <Button 
                                     onClick={onInstall}
-                                    size="xl"
-                                    className="bg-white text-brand-pink hover:bg-slate-50 w-full font-black py-6 rounded-2xl shadow-2xl border-b-6 border-slate-200 active:border-b-0 active:translate-y-1 text-xl"
+                                    size="lg"
+                                    className="bg-white text-brand-pink hover:bg-slate-50 w-full font-black py-4 md:py-6 rounded-2xl shadow-2xl border-b-4 md:border-b-6 border-slate-200 active:border-b-0 active:translate-y-1 text-lg md:text-xl"
                                 >
                                     INSTALAR AHORA
                                 </Button>
                             </>
                         ) : (
-                            <div className="bg-black/10 p-4 rounded-2xl w-full">
-                                <p className="text-sm font-black uppercase tracking-widest text-center mb-3">Instalación Manual</p>
-                                <div className="space-y-2 text-[11px] font-bold leading-tight">
-                                    <p className="flex items-center gap-2">📱 <span className="opacity-90">En iPhone: Toca "Compartir" (cuadrito con flecha) y luego "Agregar a inicio".</span></p>
-                                    <p className="flex items-center gap-2">🤖 <span className="opacity-90">En Android: Toca los 3 puntos y selecciona "Instalar aplicación".</span></p>
+                            <div className="bg-black/10 p-3 md:p-4 rounded-2xl w-full">
+                                <p className="text-[10px] md:text-sm font-black uppercase tracking-widest text-center mb-2 md:mb-3">Instalación Manual</p>
+                                <div className="space-y-1.5 md:space-y-2 text-[10px] md:text-[11px] font-bold leading-tight">
+                                    <p className="flex items-center gap-2">📱 <span className="opacity-90">En iPhone: "Compartir" y "Agregar a inicio".</span></p>
+                                    <p className="flex items-center gap-2">🤖 <span className="opacity-90">En Android: Menú y "Instalar aplicación".</span></p>
                                 </div>
                             </div>
                         )}
                     </motion.div>
                 ) : (
                     <motion.div 
-                        onClick={() => window.location.reload()} // Forzar chequeo o redirigir si se desea
-                        className="mt-6 w-full p-4 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-300 flex flex-col items-center gap-2 text-slate-400 cursor-pointer hover:bg-slate-200 transition-colors"
+                        onClick={() => window.location.reload()}
+                        className="mt-4 md:mt-6 w-full p-3 md:p-4 bg-slate-100 rounded-2xl md:rounded-3xl border-2 border-dashed border-slate-300 flex flex-col items-center gap-2 text-slate-400 cursor-pointer hover:bg-slate-200 transition-colors"
                     >
-                        <Lock size={20} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Instalación solo para Premium Total</span>
+                        <Lock size={16} className="md:w-5 md:h-5" />
+                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest">Instalación solo para Premium Total</span>
                     </motion.div>
                 )}
 
-                <div className="mt-8 w-full flex flex-col gap-3">
+                <div className="mt-6 md:mt-8 w-full flex flex-col gap-3">
                     <Button 
                         variant="secondary" 
-                        size="xl" 
-                        className="w-full h-16 font-black uppercase tracking-widest text-sm"
+                        size="lg" 
+                        className="w-full h-12 md:h-16 font-black uppercase tracking-widest text-xs md:text-sm"
                         onClick={() => setIsEditing(true)}
                     >
                         Editar Mi Perfil

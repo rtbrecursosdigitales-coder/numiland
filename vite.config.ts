@@ -17,24 +17,14 @@ export default defineConfig(({mode}) => {
           name: 'NUMILAND | Matemáticas Divertidas',
           short_name: 'NUMILAND',
           description: 'Aventura matemática para niños de 5 a 9 años por RTB Recursos Digitales',
-          theme_color: '#4F46E5',
-          background_color: '#4F46E5',
+          theme_color: '#F43F5E',
+          background_color: '#ffffff',
           display: 'standalone',
           icons: [
             {
-              src: 'https://rtbrecursosdigitales.com/wp-content/uploads/2023/10/cropped-favicon-rtb-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'https://rtbrecursosdigitales.com/wp-content/uploads/2023/10/cropped-favicon-rtb-192x192.png',
-              sizes: '512x512',
-              type: 'image/png'
-            },
-            {
-              src: 'https://rtbrecursosdigitales.com/wp-content/uploads/2023/10/cropped-favicon-rtb-192x192.png',
-              sizes: '512x512',
-              type: 'image/png',
+              src: '/logo.svg',
+              sizes: '192x192 512x512',
+              type: 'image/svg+xml',
               purpose: 'any maskable'
             }
           ]
