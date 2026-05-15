@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Avatar, UserProgress } from '../types';
 import { AVATAR_ICONS } from '../constants';
 import { Button } from './ui/Button';
-import { X, Pencil, Star, Mail, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { X, Pencil, Star, Mail, ShieldCheck, ArrowLeft, Rocket } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface ProfileProps {
@@ -13,9 +13,11 @@ interface ProfileProps {
   userEmail: string | null;
   onSave: (name: string, avatar: Avatar) => void;
   onClose: () => void;
+  onInstall: () => void;
+  canInstall: boolean;
 }
 
-export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClose }: ProfileProps) {
+export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClose, onInstall, canInstall }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(progress.name);
   const [editAvatar, setEditAvatar] = useState<Avatar>(progress.avatar);
@@ -105,7 +107,27 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                     </div>
                 </div>
 
-                <div className="mt-10 w-full">
+                {isPaid && canInstall && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-6 w-full p-6 bg-gradient-to-r from-brand-pink to-brand-orange rounded-[2.5rem] shadow-xl text-white flex flex-col items-center gap-3"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Rocket className="animate-bounce" size={24} />
+                            <span className="text-xl font-black uppercase tracking-tighter">Acceso Premium</span>
+                        </div>
+                        <p className="text-xs font-bold text-white/90 text-center mb-1">¡Instala la app en tu celular para jugar sin conexión!</p>
+                        <Button 
+                            onClick={onInstall}
+                            className="bg-white text-brand-pink hover:bg-white/90 w-full font-black py-4 rounded-2xl shadow-lg border-b-4 border-slate-200 active:border-b-0"
+                        >
+                            INSTALAR AHORA
+                        </Button>
+                    </motion.div>
+                )}
+
+                <div className="mt-8 w-full flex flex-col gap-3">
                     <Button 
                         variant="secondary" 
                         size="xl" 

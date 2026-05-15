@@ -686,7 +686,7 @@ export default function App() {
                         onClick={handleInstallClick}
                         className="bg-brand-pink text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4 animate-bounce"
                     >
-                        <RefreshCcw size={16} className="animate-spin-slow" />
+                        <Rocket size={16} />
                         <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Instalar App</span>
                     </button>
                 )}
@@ -732,6 +732,8 @@ export default function App() {
                 setView('lobby');
             }}
             onClose={() => setView('lobby')}
+            onInstall={handleInstallClick}
+            canInstall={!!deferredPrompt}
         />
     );
   } else {
