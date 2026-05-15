@@ -685,10 +685,10 @@ export default function App() {
                     <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Soporte</span>
                 </button>
                 
-                {(isPaid || paidWorldIds.length > 0) && (
+                {(isPaid) && (
                     <button 
                         onClick={handleInstallClick}
-                        className="bg-brand-orange text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4"
+                        className="bg-brand-orange text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4 shadow-orange-500/50"
                     >
                         <Rocket size={16} />
                         <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Instalar App</span>

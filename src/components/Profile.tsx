@@ -107,7 +107,7 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                     </div>
                 </div>
 
-                {isPaid && (
+                {isPaid ? (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -120,7 +120,7 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                         
                         {canInstall ? (
                             <>
-                                <p className="text-sm font-bold text-white text-center leading-tight">¡Instala la aplicación en tu pantalla de inicio para jugar sin conexión!</p>
+                                <p className="text-sm font-bold text-white text-center leading-tight">¡Genial! Tienes acceso total. Instala la app para jugar donde quieras sin conexión.</p>
                                 <Button 
                                     onClick={onInstall}
                                     size="xl"
@@ -131,13 +131,21 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                             </>
                         ) : (
                             <div className="bg-black/10 p-4 rounded-2xl w-full">
-                                <p className="text-sm font-black uppercase tracking-widest text-center mb-3">¿Cómo instalar?</p>
+                                <p className="text-sm font-black uppercase tracking-widest text-center mb-3">Instalación Manual</p>
                                 <div className="space-y-2 text-[11px] font-bold leading-tight">
-                                    <p className="flex items-center gap-2">📱 <span className="opacity-90">En iPhone: Toca el botón "Compartir" y luego "Agregar a inicio".</span></p>
+                                    <p className="flex items-center gap-2">📱 <span className="opacity-90">En iPhone: Toca "Compartir" (cuadrito con flecha) y luego "Agregar a inicio".</span></p>
                                     <p className="flex items-center gap-2">🤖 <span className="opacity-90">En Android: Toca los 3 puntos y selecciona "Instalar aplicación".</span></p>
                                 </div>
                             </div>
                         )}
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        onClick={() => window.location.reload()} // Forzar chequeo o redirigir si se desea
+                        className="mt-6 w-full p-4 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-300 flex flex-col items-center gap-2 text-slate-400 cursor-pointer hover:bg-slate-200 transition-colors"
+                    >
+                        <Lock size={20} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Instalación solo para Premium Total</span>
                     </motion.div>
                 )}
 
