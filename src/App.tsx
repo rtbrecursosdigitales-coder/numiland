@@ -19,7 +19,7 @@ import { VisualMultiplicationTask } from './components/tasks/VisualMultiplicatio
 import { WordProblemTask } from './components/tasks/WordProblemTask';
 import { MissingFactorTask } from './components/tasks/MissingFactorTask';
 import { GameGenerator } from './lib/GameGenerator';
-import { LEVELS, INITIAL_PROGRESS, TASKS_PER_LEVEL, MASTER_TASKS_COUNT } from './constants';
+import { LEVELS, INITIAL_PROGRESS, TASKS_PER_LEVEL, MASTER_TASKS_COUNT, AVATAR_ICONS } from './constants';
 import { UserProgress, TaskType, GameTask, Avatar, GameWorld } from './types';
 import confetti from 'canvas-confetti';
 import { GameLayout } from './components/GameLayout';
@@ -29,7 +29,9 @@ import { auth, db, signInWithGoogle, logout } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Button } from './components/ui/Button';
-import { Lock, Crown, LogOut, MessageCircle, ExternalLink, Volume2, RefreshCcw, Compass, Trophy, Zap, Rocket, X } from 'lucide-react';
+import { Settings } from './components/Settings';
+import { InfoModal } from './components/InfoModal';
+import { Lock, Crown, MessageCircle, ExternalLink, Volume2, VolumeX, RefreshCcw, Compass, Trophy, Zap, Rocket, X, Settings as SettingsIcon, Info, HelpCircle, Star } from 'lucide-react';
 import { cn } from './lib/utils';
 import { say, stopSpeaking } from './lib/speech';
 
@@ -44,6 +46,15 @@ export default function App() {
   const [paidWorldIds, setPaidWorldIds] = useState<GameWorld[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const [isMuted, setIsMuted] = useState(() => {
+    return localStorage.getItem('numiland_muted') === 'true';
+  });
+  const [voicesEnabled, setVoicesEnabled] = useState(() => {
+    return localStorage.getItem('numiland_voices_enabled') !== 'false';
+  });
+  const [effectsEnabled, setEffectsEnabled] = useState(() => {
+    return localStorage.getItem('numiland_effects_enabled') !== 'false';
+  });
 
   // --- GAME STATE ---
   const [progress, setProgress] = useState<UserProgress>(() => {
@@ -75,13 +86,16 @@ export default function App() {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [rewardStars, setRewardStars] = useState(3);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [gameOverReason, setGameOverReason] = useState<'lives' | 'time'>('lives');
   const [lives, setLives] = useState(2);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [lastCorrect, setLastCorrect] = useState<boolean | null>(null);
 
-  const MAX_LIVES = 2;
+  const MAX_LIVES = 3;
   const TIME_PER_TASK = 15; // Segundos por tarea
 
   // --- AUTH OBSERVER ---
@@ -120,17 +134,29 @@ export default function App() {
                     setIsPaid(fullAccess);
                     setPaidWorldIds(paidWorlds);
 
+                    const localProgress = JSON.parse(localStorage.getItem('numiland_progress') || JSON.stringify(INITIAL_PROGRESS));
                     const finalProgress = {
+                        ...INITIAL_PROGRESS,
+                        ...localProgress,
                         ...userData,
-                        avatar: userData.avatar as Avatar || 'bear',
-                        name: userData.name || '',
-                        currentWorld: userData.currentWorld as GameWorld || 'explorers',
+                        avatar: userData.avatar as Avatar || localProgress.avatar || 'bear',
+                        name: userData.name || localProgress.name || '',
+                        currentWorld: userData.currentWorld as GameWorld || localProgress.currentWorld || 'explorers',
                         isFullAccess: fullAccess,
-                        paidWorldIds: paidWorlds
+                        paidWorldIds: paidWorlds,
+                        starsPerLevel: { ...(localProgress.starsPerLevel || {}), ...(userData.starsPerLevel || {}) },
+                        completionsPerLevel: { ...(localProgress.completionsPerLevel || {}), ...(userData.completionsPerLevel || {}) },
+                        unlockedLevelIds: [...new Set([...(localProgress.unlockedLevelIds || []), ...(userData.unlockedLevelIds || []), 1])],
+                        completedLevelIds: [...new Set([...(localProgress.completedLevelIds || []), ...(userData.completedLevelIds || [])])]
                     } as UserProgress;
 
                     setProgress(finalProgress);
                     localStorage.setItem('numiland_progress', JSON.stringify(finalProgress));
+                    
+                    // If local was ahead of cloud (offline play), sync back to cloud
+                    if (JSON.stringify(finalProgress) !== JSON.stringify(userData)) {
+                        await setDoc(userRef, { ...finalProgress, updatedAt: serverTimestamp() }, { merge: true });
+                    }
 
                     if (userData.name) {
                         setView('lobby');
@@ -265,6 +291,10 @@ export default function App() {
 
   // --- VOICE ---
   useEffect(() => {
+    if (isMuted || !voicesEnabled) {
+        stopSpeaking();
+        return;
+    }
     if (view === 'game' && currentTaskIndex !== null && tasks[currentTaskIndex]) {
         const t = tasks[currentTaskIndex];
         // Only auto-play if in explorers (World 1) or first task
@@ -273,7 +303,14 @@ export default function App() {
             say(t.prompt);
         }
     }
-  }, [view, currentTaskIndex, tasks, currentLevelId]);
+  }, [view, currentTaskIndex, tasks, currentLevelId, isMuted, voicesEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('numiland_muted', String(isMuted));
+    localStorage.setItem('numiland_voices_enabled', String(voicesEnabled));
+    localStorage.setItem('numiland_effects_enabled', String(effectsEnabled));
+    if (isMuted) stopSpeaking();
+  }, [isMuted, voicesEnabled, effectsEnabled]);
 
   useEffect(() => {
     const handleBeforeInstall = (e: any) => {
@@ -414,7 +451,9 @@ export default function App() {
   };
 
   const handleLevelComplete = () => {
-    const stars = 3; 
+    // Stars based on lives: 3 lives = 3 stars, 2 lives = 2 stars, 1 life = 1 star
+    const stars = lives; 
+    setRewardStars(stars);
     
     const nextLevelId = currentLevelId! + 1;
     const canUnlockNext = isPaid || progress.unlockedLevelIds.length < 10 || progress.unlockedLevelIds.includes(nextLevelId);
@@ -456,6 +495,7 @@ export default function App() {
   };
 
   const playTone = (freq: number, duration: number) => {
+    if (isMuted) return;
     try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const osc = ctx.createOscillator();
@@ -719,73 +759,119 @@ export default function App() {
     );
   } else if (view === 'lobby') {
     mainContent = (
-        <div className="relative">
-            {/* Admin/User indicator */}
-            <div className="fixed top-4 left-4 z-50 flex gap-2">
-                <div 
-                    onClick={() => !isPaid && setView('payment')}
-                    className={cn(
-                        "bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border-2 shadow-lg flex items-center gap-2 transition-all",
-                        !isPaid ? "border-brand-pink hover:scale-105 cursor-pointer" : "border-brand-blue"
-                    )}
-                >
-                    {isPaid ? <Crown size={16} className="text-brand-yellow fill-brand-yellow" /> : <Lock size={16} className="text-brand-pink" />}
-                    <span className={cn(
-                        "text-xs font-black uppercase tracking-widest",
-                        isPaid ? "text-brand-blue" : "text-brand-pink"
-                    )}>
-                        {isPaid ? 'Premium' : 'Pasar a Premium'}
-                    </span>
-                </div>
-                <button 
-                    onClick={() => window.open('https://wa.me/5492233440067', '_blank')}
-                    className="bg-green-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4"
-                >
-                    <MessageCircle size={16} />
-                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Soporte</span>
-                </button>
-                
-                {(isPaid) && (
-                    <button 
-                        onClick={handleInstallClick}
-                        className="bg-brand-orange text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4 shadow-orange-500/50"
-                    >
-                        <Rocket size={16} />
-                        <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Instalar App</span>
-                    </button>
-                )}
-
-                {!isOnline && (
-                    <div className="bg-slate-800/80 backdrop-blur-sm text-white p-2 rounded-full shadow-lg border-2 border-slate-600 flex items-center gap-2 px-4 animate-pulse">
-                        <Zap size={16} className="text-brand-yellow" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Modo Offline</span>
-                    </div>
-                )}
+        <div className="immersive-bg min-h-screen relative overflow-x-hidden">
+            {/* Background Clouds */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-50">
+                <div className="cloud-blur top-[10%] left-[5%] w-32 h-20 animate-float" />
+                <div className="cloud-blur top-[30%] right-[10%] w-64 h-32 animate-float [animation-delay:2s]" />
+                <div className="cloud-blur bottom-[20%] left-[15%] w-48 h-24 animate-float [animation-delay:4s]" />
             </div>
 
-            <LevelSelector 
-                levels={levelInfoList}
-                starsPerLevel={progress.starsPerLevel}
-                completionsPerLevel={progress.completionsPerLevel}
-                onSelectLevel={handleStartLevel}
-                onSelectAvatar={() => setView('profile')}
-                onResetProgress={handleResetProgress}
-                userName={progress.name}
-                avatar={progress.avatar}
-                currentWorld={progress.currentWorld}
-                onWorldChange={(world) => {
-                    const newProgress = { ...progress, currentWorld: world };
-                    setProgress(newProgress);
-                    syncProgress(newProgress);
-                }}
-                onSignOut={logout}
-                onStatsClick={() => setShowComingSoonModal(true)}
-            />
-            {/* Version Indicator */}
-            <div className="text-center pb-8 opacity-40">
-                <p className="text-white text-[10px] font-black uppercase tracking-widest">
-                    v1.0.26.4 | RTB Recursos Digitales
-                </p>
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 relative z-10">
+                {/* Header Section - Clean & Persistent (Not Floating) */}
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-12 md:mb-16">
+                    <div className="text-center lg:text-left">
+                        <motion.h1 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="text-6xl md:text-7xl lg:text-9xl font-black tracking-tighter drop-shadow-[0_10px_20px_rgba(0,0,0,0.3)] uppercase leading-none"
+                        >
+                            <span className="text-brand-yellow">NUMI</span>
+                            <span className="text-brand-pink">LAND</span>
+                        </motion.h1>
+                        <div className="flex items-center gap-2 mt-2 justify-center lg:justify-start">
+                            <p className="text-white/80 font-black italic uppercase tracking-widest text-sm md:text-lg">
+                                ¡La aventura de los números!
+                            </p>
+                            <span className="bg-white/20 text-white/40 text-[10px] px-2 py-0.5 rounded-full font-black">v1.5</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center items-center gap-3 md:gap-4 bg-white/10 backdrop-blur-md p-4 rounded-[3rem] border-2 border-white/20 shadow-2xl">
+                        {/* Profile Button */}
+                        <button 
+                            onClick={() => setView('profile')}
+                            className="bg-white p-1 pr-6 rounded-full border-2 border-white shadow-xl flex items-center gap-4 transition-all hover:scale-105 group"
+                        >
+                            <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-yellow rounded-full border-2 border-white shadow-inner flex items-center justify-center text-3xl md:text-4xl overflow-hidden transform group-hover:rotate-6 transition-transform">
+                                {AVATAR_ICONS[progress.avatar]}
+                            </div>
+                            <div className="text-left">
+                                <p className="text-sm md:text-base font-black text-slate-800 leading-none uppercase tracking-tighter">{progress.name}</p>
+                                {isPaid && (
+                                    <div className="flex items-center gap-1 text-brand-orange text-[8px] md:text-[10px] font-black uppercase tracking-widest">
+                                        <Crown size={10} className="fill-brand-orange" />
+                                        <span>Premium</span>
+                                    </div>
+                                )}
+                            </div>
+                        </button>
+
+                        {/* Stars Button */}
+                        <button 
+                            onClick={() => setShowComingSoonModal(true)}
+                            className="bg-white px-5 py-2 md:py-3 rounded-full border-2 border-white shadow-xl flex items-center gap-3 transition-all hover:scale-105"
+                        >
+                            <Star className="text-brand-yellow fill-brand-yellow" size={24} />
+                            <span className="text-2xl md:text-3xl font-black text-slate-800 tabular-nums">{totalStarsCount}</span>
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                            {/* Info Button */}
+                            <button 
+                                onClick={() => setShowInfo(true)}
+                                className="bg-brand-blue text-white w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-white shadow-xl flex items-center justify-center hover:scale-110 transition-transform"
+                            >
+                                <Info size={28} />
+                            </button>
+
+                            {/* Settings Button */}
+                            <button 
+                                onClick={() => setShowSettings(true)}
+                                className="bg-slate-800 text-white w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-slate-600 shadow-xl flex items-center justify-center hover:scale-110 transition-transform relative"
+                            >
+                                <SettingsIcon size={24} />
+                                {!isOnline && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-brand-yellow rounded-full flex items-center justify-center border-2 border-slate-800">
+                                        <Zap size={10} className="text-slate-800 fill-slate-800" />
+                                    </div>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <LevelSelector 
+                    levels={levelInfoList}
+                    starsPerLevel={progress.starsPerLevel}
+                    completionsPerLevel={progress.completionsPerLevel}
+                    onSelectLevel={handleStartLevel}
+                    userName={progress.name}
+                    avatar={progress.avatar}
+                    currentWorld={progress.currentWorld}
+                    onWorldChange={(world) => {
+                        const newProgress = { ...progress, currentWorld: world };
+                        setProgress(newProgress);
+                        syncProgress(newProgress);
+                    }}
+                    onStatsClick={() => setShowComingSoonModal(true)}
+                />
+
+                {/* Footer Section - Integrated */}
+                <div className="mt-20 pt-12 border-t-2 border-dashed border-white/10 text-center space-y-4">
+                    <div className="flex flex-col items-center gap-6">
+                        <div className="bg-white/95 backdrop-blur-md p-6 rounded-[3rem] border-4 border-white shadow-2xl flex items-center gap-4 transition-transform hover:scale-105">
+                            <Rocket size={40} className="text-brand-blue" />
+                            <div className="text-left">
+                                <p className="text-slate-800 font-extrabold text-lg uppercase tracking-tight leading-none mb-1">RTB Recursos Digitales</p>
+                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest leading-none">Creadores de Aventuras</p>
+                            </div>
+                        </div>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] pb-12">
+                            v1.2.0 • Hecho con ✨ por especialistas en educación
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -794,7 +880,7 @@ export default function App() {
         <Profile 
             progress={progress}
             totalStars={totalStarsCount}
-            isPaid={isPaid || paidWorldIds.length > 0}
+            isPaid={isPaid}
             userEmail={user?.email || null}
             onSave={(name, avatar) => {
                 const newProgress = { ...progress, name, avatar };
@@ -805,6 +891,7 @@ export default function App() {
             onClose={() => setView('lobby')}
             onInstall={handleInstallClick}
             canInstall={!!deferredPrompt}
+            onSignOut={logout}
         />
     );
   } else {
@@ -827,12 +914,14 @@ export default function App() {
                         <div className="mb-4 md:mb-6 bg-brand-pink text-white px-6 py-3 rounded-2xl font-black text-sm md:text-lg shadow-lg uppercase tracking-wider text-center flex-1">
                             {currentTask?.prompt}
                         </div>
-                        <button 
-                            onClick={() => say(currentTask?.prompt || '')}
-                            className="mb-4 md:mb-6 p-3 bg-white text-brand-pink rounded-2xl shadow-lg border-b-4 border-slate-200 active:translate-y-1 active:border-b-0 transition-all hover:bg-slate-50"
-                        >
-                            <Volume2 size={24} />
-                        </button>
+                        {!isMuted && (
+                            <button 
+                                onClick={() => say(currentTask?.prompt || '')}
+                                className="mb-4 md:mb-6 p-3 bg-white text-brand-pink rounded-2xl shadow-lg border-b-4 border-slate-200 active:translate-y-1 active:border-b-0 transition-all hover:bg-slate-50"
+                            >
+                                <Volume2 size={24} />
+                            </button>
+                        )}
                     </div>
 
                 <div className="flex flex-col items-center w-full">
@@ -970,37 +1059,13 @@ export default function App() {
     );
   }
 
-  if (loading) {
-    return (
-        <div className="min-h-screen bg-brand-blue flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-32 h-32 mb-8 animate-bounce">
-                <img src="/logo.svg" alt="Numiland Logo" className="w-full h-full" />
-            </div>
-            <div className="space-y-4">
-                <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Numiland</h1>
-                <div className="flex flex-col items-center gap-4 justify-center">
-                    <div className="flex items-center gap-2">
-                        <RefreshCcw className="text-brand-yellow animate-spin" size={24} />
-                        <p className="text-white/80 font-bold uppercase tracking-widest text-xs">Preparando aventura...</p>
-                    </div>
-                    {!isOnline && (
-                        <div className="bg-white/10 px-4 py-2 rounded-full border border-white/20">
-                            <p className="text-white text-[10px] font-black uppercase tracking-widest">Modo Offline Activo</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-  }
-
   return (
     <>
         {mainContent}
 
         <RewardModal 
             isOpen={showRewardModal}
-            stars={3}
+            stars={rewardStars}
             completions={progress.completionsPerLevel[currentLevelId!] || 1}
             onNext={() => {
                 setShowRewardModal(false);
@@ -1039,6 +1104,39 @@ export default function App() {
         <ComingSoonModal 
             isOpen={showComingSoonModal}
             onClose={() => setShowComingSoonModal(false)}
+        />
+
+        {/* Settings Modal */}
+        <Settings 
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            isMuted={isMuted}
+            onToggleMute={() => setIsMuted(!isMuted)}
+            voicesEnabled={voicesEnabled}
+            onToggleVoices={() => setVoicesEnabled(!voicesEnabled)}
+            effectsEnabled={effectsEnabled}
+            onToggleEffects={() => setEffectsEnabled(!effectsEnabled)}
+            onResetProgress={() => {
+                if (confirm('¿Estás seguro de que quieres reiniciar todo tu progreso? Esta acción no se puede deshacer.')) {
+                    handleResetProgress();
+                    setShowSettings(false);
+                }
+            }}
+            onSignOut={() => {
+                logout();
+                setShowSettings(false);
+            }}
+        />
+
+        {/* Info Modal */}
+        <InfoModal 
+            isOpen={showInfo}
+            onClose={() => setShowInfo(false)}
+            isPaid={isPaid}
+            onGoToPayment={() => {
+                setShowInfo(false);
+                setView('payment');
+            }}
         />
     </>
   );

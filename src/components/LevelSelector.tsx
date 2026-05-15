@@ -11,13 +11,10 @@ interface LevelSelectorProps {
   starsPerLevel: Record<number, number>;
   completionsPerLevel: Record<number, number>;
   onSelectLevel: (levelId: number) => void;
-  onSelectAvatar: () => void;
-  onResetProgress: () => void;
   userName: string;
   avatar: string;
   currentWorld?: GameWorld;
   onWorldChange: (world: GameWorld) => void;
-  onSignOut: () => void;
   onStatsClick?: () => void;
 }
 
@@ -26,13 +23,10 @@ export function LevelSelector({
   starsPerLevel, 
   completionsPerLevel,
   onSelectLevel, 
-  onSelectAvatar,
-  onResetProgress,
   userName,
   avatar,
   currentWorld = 'explorers',
   onWorldChange,
-  onSignOut,
   onStatsClick
 }: LevelSelectorProps) {
   const [selectedWorld, setSelectedWorld] = React.useState<GameWorld>(currentWorld);
@@ -62,74 +56,7 @@ export function LevelSelector({
   const completedLevels = levels.filter(l => completionsPerLevel[l.id] > 0);
 
   return (
-    <div className="immersive-bg min-h-screen p-6 pb-24 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-        <div className="cloud-blur top-[10%] left-[5%] w-32 h-20 animate-float" />
-        <div className="cloud-blur top-[40%] right-[10%] w-64 h-32 animate-float [animation-delay:2s]" />
-        <div className="cloud-blur bottom-[15%] left-[20%] w-48 h-24 animate-float [animation-delay:4s]" />
-      </div>
-
-      {/* Top Bar */}
-      <div className="max-w-6xl mx-auto flex items-center justify-between mb-4 md:mb-6 relative z-20">
-        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-lg p-2 pr-4 md:pr-6 rounded-3xl border-2 border-white/30 cursor-pointer hover:bg-white/30 transition-all hover:scale-105" onClick={onSelectAvatar}>
-          <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-yellow rounded-2xl border-2 md:border-4 border-white shadow-xl flex items-center justify-center text-3xl md:text-4xl overflow-hidden transform -rotate-3">
-            {AVATAR_ICONS[avatar]}
-          </div>
-          <div>
-            <h3 className="text-lg md:text-xl font-black text-white drop-shadow-md leading-none mb-1 uppercase tracking-tighter text-left">HOLA, {userName}!</h3>
-            <div className="flex items-center gap-1 text-white/70 font-bold text-[8px] md:text-[10px] uppercase tracking-widest text-left">
-              <Settings size={10} /> CAMBIAR AVATAR
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2 md:gap-4">
-            <button 
-              onClick={onSignOut}
-              title="Cerrar Sesión"
-              className="w-10 h-10 md:w-12 md:h-12 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all group"
-            >
-                <LogOut size={20} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
-            </button>
-            <button 
-              onClick={onResetProgress}
-              title="Reiniciar Progreso"
-              className="w-10 h-10 md:w-12 md:h-12 bg-brand-pink/20 backdrop-blur-md rounded-2xl border-2 border-brand-pink/30 flex items-center justify-center text-brand-pink hover:bg-brand-pink/40 transition-all"
-            >
-                <RefreshCcw size={20} strokeWidth={2.5} />
-            </button>
-            <button 
-              onClick={() => setShowInfo(true)}
-              className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-md rounded-2xl border-2 border-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-all"
-            >
-                <HelpCircle size={24} strokeWidth={2.5} />
-            </button>
-            <button 
-              onClick={onStatsClick}
-              className="bg-white/20 backdrop-blur-md rounded-full pl-2 pr-4 md:pr-6 py-1.5 border-2 border-white/30 flex items-center gap-2 md:gap-3 hover:bg-white/40 transition-all active:scale-95 cursor-pointer"
-            >
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-sm md:text-lg shadow-inner border-2 border-white">⭐</div>
-                <span className="text-lg md:text-2xl font-black text-white drop-shadow-sm">{totalStars}</span>
-            </button>
-        </div>
-      </div>
-
-      {/* Intro */}
-      <div className="max-w-4xl mx-auto text-center mb-6 md:mb-8 relative z-20">
-        <motion.h1 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)] uppercase leading-none"
-        >
-            <span className="text-brand-yellow">NUMI</span>
-            <span className="text-brand-pink">LAND</span>
-        </motion.h1>
-        <p className="text-base md:text-xl font-black text-white/90 max-w-md mx-auto drop-shadow-md italic mt-1">
-            ¡Explora el mundo de los números!
-        </p>
-      </div>
-      
+    <div className="relative">
       {/* World Selector */}
       <div className="max-w-6xl mx-auto mb-12 relative z-20">
         <div className="flex flex-wrap justify-center gap-3">
@@ -167,7 +94,7 @@ export function LevelSelector({
             })}
         </div>
       </div>
-      
+
       {/* Level Grid */}
       <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-6 relative z-20">
         {filteredLevels.map((level, idx) => {
@@ -530,49 +457,6 @@ export function LevelSelector({
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <footer className="max-w-6xl mx-auto py-16 mt-12 border-t-4 border-dashed border-white/10 flex flex-col items-center gap-6 relative z-20 px-6">
-        <div className="flex flex-col md:flex-row items-center gap-8 bg-white/95 backdrop-blur-md p-10 md:p-12 rounded-[4rem] border-4 border-white shadow-2xl w-full md:w-auto min-w-[320px] transition-transform hover:scale-[1.02]">
-            <div className="flex items-center gap-6">
-                {!logoError ? (
-                  <img 
-                      src="https://rtbrecursosdigitales.com/wp-content/uploads/2023/10/cropped-favicon-rtb-192x192.png" 
-                      alt="RTB Icono" 
-                      className="h-20 w-20 md:h-24 md:w-24 object-contain drop-shadow-md"
-                      referrerPolicy="no-referrer"
-                      onError={() => setLogoError(true)}
-                  />
-                ) : (
-                  <div className="h-20 w-20 md:h-24 md:w-24 relative flex items-center justify-center p-2">
-                    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
-                        {/* El logo representa un libro digital con nodos */}
-                        <path d="M10 20 Q10 15 15 15 L50 15 L50 85 L15 85 Q10 85 10 80 Z" fill="#1e40af" />
-                        <path d="M90 20 Q90 15 85 15 L50 15 L50 85 L85 85 Q90 85 90 80 Z" fill="#22d3ee" />
-                        <line x1="50" y1="15" x2="50" y2="85" stroke="white" strokeWidth="2" />
-                        <circle cx="70" cy="35" r="4" fill="white" />
-                        <circle cx="75" cy="55" r="4" fill="white" />
-                        <circle cx="68" cy="70" r="4" fill="white" />
-                        <path d="M70 35 L75 55 L68 70" stroke="white" strokeWidth="1" fill="none" opacity="0.6" />
-                    </svg>
-                  </div>
-                )}
-                <div className="h-16 w-1 bg-slate-200 rounded-full hidden md:block" />
-            </div>
-            <div className="text-center md:text-left">
-                <p className="text-slate-800 font-black text-lg md:text-2xl tracking-tighter mb-1 font-sans">
-                    RTB RECURSOS DIGITALES
-                </p>
-                <p className="text-slate-400 font-bold text-sm md:text-base tracking-wide mb-3">
-                    © {new Date().getFullYear()} Todos los derechos reservados
-                </p>
-                <div className="inline-block bg-brand-blue/10 px-4 py-1.5 rounded-full">
-                    <p className="text-brand-blue font-black text-[10px] md:text-xs uppercase tracking-[0.3em]">
-                        Aprender • Crear • Resolver
-                    </p>
-                </div>
-            </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Avatar, UserProgress } from '../types';
 import { AVATAR_ICONS } from '../constants';
 import { Button } from './ui/Button';
-import { X, Pencil, Star, Mail, ShieldCheck, ArrowLeft, Rocket } from 'lucide-react';
+import { X, Pencil, Star, Mail, ShieldCheck, ArrowLeft, Rocket, Crown } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface ProfileProps {
@@ -15,9 +15,10 @@ interface ProfileProps {
   onClose: () => void;
   onInstall: () => void;
   canInstall: boolean;
+  onSignOut: () => void;
 }
 
-export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClose, onInstall, canInstall }: ProfileProps) {
+export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClose, onInstall, canInstall, onSignOut }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(progress.name);
   const [editAvatar, setEditAvatar] = useState<Avatar>(progress.avatar);
@@ -52,10 +53,17 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                 <h2 className="text-2xl md:text-4xl font-black text-slate-800 uppercase tracking-tighter">Mi Perfil</h2>
                 <div className="flex items-center justify-center gap-2 mt-0.5">
                     <div className={cn(
-                        "text-[8px] md:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 md:px-3 md:py-1 rounded-full border shadow-sm",
-                        isPaid ? "bg-brand-yellow/20 border-brand-yellow text-brand-orange" : "bg-slate-100 border-slate-200 text-slate-400"
+                        "text-[8px] md:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 md:px-3 md:py-1 rounded-full border shadow-lg transition-all",
+                        isPaid 
+                            ? "bg-gradient-to-r from-brand-yellow via-brand-orange to-brand-pink border-white text-white scale-110" 
+                            : "bg-slate-100 border-slate-200 text-slate-400"
                     )}>
-                        {isPaid ? 'Explorador Premium' : 'Explorador Free'}
+                        {isPaid ? (
+                            <span className="flex items-center gap-1">
+                                <Crown size={10} className="fill-white" />
+                                Explorador Premium
+                            </span>
+                        ) : 'Explorador Free'}
                     </div>
                 </div>
             </div>
@@ -157,6 +165,14 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                         onClick={() => setIsEditing(true)}
                     >
                         Editar Mi Perfil
+                    </Button>
+                    <Button 
+                        variant="ghost" 
+                        size="lg" 
+                        className="w-full h-10 md:h-12 font-bold uppercase tracking-widest text-[10px] md:text-xs text-slate-400 hover:text-brand-pink"
+                        onClick={onSignOut}
+                    >
+                        Cerrar Sesión
                     </Button>
                 </div>
               </motion.div>
