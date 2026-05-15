@@ -225,7 +225,11 @@ export default function App() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      // Si no hay prompt automático, llevamos al perfil para ver las instrucciones manuales
+      setView('profile');
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -681,10 +685,10 @@ export default function App() {
                     <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Soporte</span>
                 </button>
                 
-                {isPaid && deferredPrompt && (
+                {(isPaid || paidWorldIds.length > 0) && (
                     <button 
                         onClick={handleInstallClick}
-                        className="bg-brand-pink text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4 animate-bounce"
+                        className="bg-brand-orange text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform border-2 border-white flex items-center gap-2 px-4"
                     >
                         <Rocket size={16} />
                         <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Instalar App</span>

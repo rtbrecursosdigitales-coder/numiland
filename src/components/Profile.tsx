@@ -107,23 +107,37 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                     </div>
                 </div>
 
-                {isPaid && canInstall && (
+                {isPaid && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 w-full p-6 bg-gradient-to-r from-brand-pink to-brand-orange rounded-[2.5rem] shadow-xl text-white flex flex-col items-center gap-3"
+                        className="mt-6 w-full p-6 bg-gradient-to-br from-brand-pink via-brand-orange to-brand-yellow rounded-[2.5rem] shadow-xl text-white flex flex-col items-center gap-4 border-4 border-white/20"
                     >
-                        <div className="flex items-center gap-3">
-                            <Rocket className="animate-bounce" size={24} />
-                            <span className="text-xl font-black uppercase tracking-tighter">Acceso Premium</span>
+                        <div className="flex items-center gap-4">
+                            <Rocket className="animate-bounce" size={32} />
+                            <span className="text-2xl font-black uppercase tracking-tighter">App Premium</span>
                         </div>
-                        <p className="text-xs font-bold text-white/90 text-center mb-1">¡Instala la app en tu celular para jugar sin conexión!</p>
-                        <Button 
-                            onClick={onInstall}
-                            className="bg-white text-brand-pink hover:bg-white/90 w-full font-black py-4 rounded-2xl shadow-lg border-b-4 border-slate-200 active:border-b-0"
-                        >
-                            INSTALAR AHORA
-                        </Button>
+                        
+                        {canInstall ? (
+                            <>
+                                <p className="text-sm font-bold text-white text-center leading-tight">¡Instala la aplicación en tu pantalla de inicio para jugar sin conexión!</p>
+                                <Button 
+                                    onClick={onInstall}
+                                    size="xl"
+                                    className="bg-white text-brand-pink hover:bg-slate-50 w-full font-black py-6 rounded-2xl shadow-2xl border-b-6 border-slate-200 active:border-b-0 active:translate-y-1 text-xl"
+                                >
+                                    INSTALAR AHORA
+                                </Button>
+                            </>
+                        ) : (
+                            <div className="bg-black/10 p-4 rounded-2xl w-full">
+                                <p className="text-sm font-black uppercase tracking-widest text-center mb-3">¿Cómo instalar?</p>
+                                <div className="space-y-2 text-[11px] font-bold leading-tight">
+                                    <p className="flex items-center gap-2">📱 <span className="opacity-90">En iPhone: Toca el botón "Compartir" y luego "Agregar a inicio".</span></p>
+                                    <p className="flex items-center gap-2">🤖 <span className="opacity-90">En Android: Toca los 3 puntos y selecciona "Instalar aplicación".</span></p>
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 )}
 
