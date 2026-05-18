@@ -16,9 +16,10 @@ interface ProfileProps {
   onInstall: () => void;
   canInstall: boolean;
   onSignOut: () => void;
+  onSignIn: () => void;
 }
 
-export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClose, onInstall, canInstall, onSignOut }: ProfileProps) {
+export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClose, onInstall, canInstall, onSignOut, onSignIn }: ProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(progress.name);
   const [editAvatar, setEditAvatar] = useState<Avatar>(progress.avatar);
@@ -63,7 +64,7 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                                 <Crown size={10} className="fill-white" />
                                 Explorador Premium
                             </span>
-                        ) : 'Explorador Free'}
+                        ) : userEmail ? 'Explorador Free' : 'Modo Invitado'}
                     </div>
                 </div>
             </div>
@@ -109,9 +110,9 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                     </div>
                     <div className="bg-white/60 p-4 md:p-6 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border-2 border-white flex flex-col items-center gap-0.5 md:gap-1">
                         <div className="flex items-center gap-2 text-brand-blue mb-0.5">
-                            <Mail className="w-5 h-5 md:w-6 md:h-6" />
+                            <ShieldCheck className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
-                        <span className="text-[8px] md:text-[10px] font-medium text-slate-500 truncate w-full text-center px-2">{userEmail}</span>
+                        <span className="text-[8px] md:text-[10px] font-medium text-slate-500 truncate w-full text-center px-2">{userEmail || 'Sin Sincronizar'}</span>
                     </div>
                 </div>
 
@@ -166,14 +167,25 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                     >
                         Editar Mi Perfil
                     </Button>
-                    <Button 
-                        variant="ghost" 
-                        size="lg" 
-                        className="w-full h-10 md:h-12 font-bold uppercase tracking-widest text-[10px] md:text-xs text-slate-400 hover:text-brand-pink"
-                        onClick={onSignOut}
-                    >
-                        Cerrar Sesión
-                    </Button>
+                    {userEmail ? (
+                        <Button 
+                            variant="ghost" 
+                            size="lg" 
+                            className="w-full h-10 md:h-12 font-bold uppercase tracking-widest text-[10px] md:text-xs text-slate-400 hover:text-brand-pink"
+                            onClick={onSignOut}
+                        >
+                            Cerrar Sesión
+                        </Button>
+                    ) : (
+                        <Button 
+                            variant="primary" 
+                            size="lg" 
+                            className="w-full h-12 md:h-14 font-black uppercase tracking-widest text-xs md:text-sm bg-brand-blue text-white shadow-lg"
+                            onClick={onSignIn}
+                        >
+                            ❤️ Registrarse para Sincronizar
+                        </Button>
+                    )}
                 </div>
               </motion.div>
             ) : (

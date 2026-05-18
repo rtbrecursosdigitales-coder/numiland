@@ -177,17 +177,17 @@ export default function App() {
                     }
                 }
             } else {
-                if (!isOnline && progress.name) {
-                    // Stay in lobby if offline and we have a name
-                    console.log('Offline: using local state');
+                // Not signed in / Guest mode
+                setIsPaid(false);
+                setPaidWorldIds([]);
+                
+                const localProgress = JSON.parse(localStorage.getItem('numiland_progress') || JSON.stringify(INITIAL_PROGRESS));
+                if (localProgress.name) {
+                    setProgress(localProgress);
+                    setView('lobby');
                 } else {
-                    setIsPaid(false);
-                    setPaidWorldIds([]);
-                    const saved = localStorage.getItem('numiland_progress');
-                    if (!saved) {
-                        setProgress(INITIAL_PROGRESS);
-                        setView('onboarding');
-                    }
+                    setProgress(INITIAL_PROGRESS);
+                    setView('onboarding');
                 }
             }
         } catch (error) {
@@ -266,10 +266,9 @@ export default function App() {
                 lockType = 'progression';
             }
         } else {
-            // Free user
-            // Allow explorers world first 10
-            const isFreeUnlocked = (l.world === 'explorers' && (l.id <= 10 || progress.unlockedLevelIds.includes(l.id)));
-            if (isFreeUnlocked) {
+            // Free user / Guest
+            // Allow first 10 levels of any world to let them try everything
+            if (isFirst10OfWorld || progress.unlockedLevelIds.includes(l.id)) {
                 unlocked = true;
                 lockType = 'none';
             } else {
@@ -797,11 +796,19 @@ export default function App() {
                                 {AVATAR_ICONS[progress.avatar]}
                             </div>
                             <div className="text-left">
-                                <p className="text-sm md:text-base font-black text-slate-800 leading-none uppercase tracking-tighter">{progress.name}</p>
-                                {isPaid && (
+                                <p className="text-sm md:text-base font-black text-slate-800 leading-none uppercase tracking-tighter">{progress.name || 'Invitado'}</p>
+                                {isPaid ? (
                                     <div className="flex items-center gap-1 text-brand-orange text-[8px] md:text-[10px] font-black uppercase tracking-widest">
                                         <Crown size={10} className="fill-brand-orange" />
                                         <span>Premium</span>
+                                    </div>
+                                ) : !user ? (
+                                    <div className="text-slate-400 text-[8px] md:text-[10px] font-black uppercase tracking-widest">
+                                        <span>Modo Invitado</span>
+                                    </div>
+                                ) : (
+                                    <div className="text-slate-400 text-[8px] md:text-[10px] font-black uppercase tracking-widest">
+                                        <span>Explorador Free</span>
                                     </div>
                                 )}
                             </div>
@@ -892,6 +899,7 @@ export default function App() {
             onInstall={handleInstallClick}
             canInstall={!!deferredPrompt}
             onSignOut={logout}
+            onSignIn={signInWithGoogle}
         />
     );
   } else {

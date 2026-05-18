@@ -131,13 +131,23 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
             <p className="text-slate-500 font-bold text-lg">
               Inicia sesión para guardar tus estrellas y jugar en cualquier dispositivo.
             </p>
-            <Button 
-              onClick={onSignIn}
-              size="xl" 
-              className="w-full h-20 text-2xl font-black gap-4"
-            >
-              <LogIn className="w-8 h-8" /> ENTRAR CON GOOGLE
-            </Button>
+            <div className="flex flex-col gap-4">
+              <Button 
+                onClick={onSignIn}
+                size="xl" 
+                className="w-full h-20 text-2xl font-black gap-4"
+              >
+                <LogIn className="w-8 h-8" /> ENTRAR CON GOOGLE
+              </Button>
+              <Button 
+                onClick={() => setStep(2)}
+                variant="outline"
+                size="xl" 
+                className="w-full h-16 text-xl font-black gap-3 border-2 border-slate-200 text-slate-500 hover:bg-slate-50"
+              >
+                🎮 CONTINUAR COMO INVITADO
+              </Button>
+            </div>
             <p className="text-slate-400 text-sm font-medium italic">
               * El progreso se sincronizará automáticamente.
             </p>
