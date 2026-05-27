@@ -335,6 +335,23 @@ export default function App() {
     }
   };
 
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      console.error('Error signing in with Google:', error);
+      let errorMsg = 'No se pudo iniciar sesión con Google.';
+      if (error.code === 'auth/popup-blocked') {
+        errorMsg = 'El navegador bloqueó la ventana emergente de Google. Por favor, permite ventanas emergentes en tu navegador o abre el juego en una ventana independiente.';
+      } else if (error.code === 'auth/operation-not-supported-in-this-environment' || error.message?.includes('iframe') || error.message?.includes('sandboxed')) {
+        errorMsg = 'El inicio de sesión con Google está bloqueado por seguridad dentro de este cuadro de vista previa de IA. Por favor, abre la app en una nueva pestaña usando el botón en la esquina superior derecha para registrarte.';
+      } else {
+        errorMsg += ` Detalle: ${error.message || error}`;
+      }
+      alert(errorMsg);
+    }
+  };
+
   // --- TIMER LOGIC ---
   useEffect(() => {
     let interval: any;
@@ -735,7 +752,7 @@ export default function App() {
             isSignedIn={!!user}
             userEmail={user?.email}
             isAdmin={isPaid || paidWorldIds.length > 0}
-            onSignIn={signInWithGoogle}
+            onSignIn={handleSignIn}
             onComplete={(name, avatar, startingWorld) => {
                 let startId = 1;
                 if (startingWorld === 'adventurers') startId = 101;
@@ -897,7 +914,7 @@ export default function App() {
             onInstall={handleInstallClick}
             canInstall={!!deferredPrompt}
             onSignOut={logout}
-            onSignIn={signInWithGoogle}
+            onSignIn={handleSignIn}
         />
     );
   } else {
@@ -1034,7 +1051,9 @@ export default function App() {
                     {currentTask?.type === TaskType.SPANISH_NUMBER && (
                         <SpanishNumberTask 
                             task={currentTask}
-                            onAnswer={handleAnswer}
+                            onAnswer={(correct: boolean) => {
+                                handleAnswer(correct ? currentTask.answer : '');
+                            }}
                         />
                     )}
                     {!currentTask && (

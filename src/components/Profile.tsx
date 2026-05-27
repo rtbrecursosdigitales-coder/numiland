@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Avatar, UserProgress } from '../types';
 import { AVATAR_ICONS } from '../constants';
 import { Button } from './ui/Button';
-import { X, Pencil, Star, Mail, ShieldCheck, ArrowLeft, Rocket, Crown } from 'lucide-react';
+import { X, Pencil, Star, Mail, ShieldCheck, ArrowLeft, Rocket, Crown, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface ProfileProps {
@@ -81,18 +81,19 @@ export function Profile({ progress, totalStars, isPaid, userEmail, onSave, onClo
                 className="flex flex-col items-center"
               >
                 {/* Avatar Display */}
-                <div className="relative group mb-4 md:mb-6">
-                    <div className="w-32 h-32 md:w-56 md:h-56 bg-white rounded-[2.5rem] md:rounded-[3.5rem] flex items-center justify-center text-6xl md:text-9xl shadow-2xl border-4 md:border-8 border-white relative overflow-hidden group-hover:scale-105 transition-transform">
+                <button 
+                    onClick={() => setIsEditing(true)}
+                    className="relative group mb-4 md:mb-6 select-none focus:outline-none block hover:scale-105 active:scale-95 transition-all outline-none"
+                    aria-label="Editar avatar"
+                >
+                    <div className="w-32 h-32 md:w-56 md:h-56 bg-white rounded-[2.5rem] md:rounded-[3.5rem] flex items-center justify-center text-6xl md:text-9xl shadow-2xl border-4 md:border-8 border-white relative overflow-hidden transition-all">
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-blue/5 to-transparent" />
                         {AVATAR_ICONS[progress.avatar]}
                     </div>
-                    <button 
-                        onClick={() => setIsEditing(true)}
-                        className="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-2.5 md:p-4 bg-brand-pink text-white rounded-xl md:rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all border-2 md:border-4 border-white"
-                    >
+                    <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 p-2.5 md:p-4 bg-brand-pink text-white rounded-xl md:rounded-2xl shadow-xl border-2 md:border-4 border-white">
                         <Pencil size={18} className="md:w-6 md:h-6" />
-                    </button>
-                </div>
+                    </div>
+                </button>
 
                 {/* Name Display */}
                 <div className="flex items-center gap-3 mb-6 md:mb-8">
