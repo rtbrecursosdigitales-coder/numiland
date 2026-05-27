@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ExternalLink, MessageCircle, Rocket, Heart, ShieldCheck, Mail, Star, Lock } from 'lucide-react';
+import { X, ExternalLink, MessageCircle, Rocket, Heart, ShieldCheck, Mail, Star, Lock, Compass, Map, GraduationCap, Zap } from 'lucide-react';
 import { Button } from './ui/Button';
+import { RtbLogo } from './RtbLogo';
 
 interface InfoModalProps {
     isOpen: boolean;
@@ -43,13 +44,89 @@ export function InfoModal({ isOpen, onClose, isPaid, onGoToPayment }: InfoModalP
                     </div>
                 </div>
 
-                <div className="p-8 space-y-6">
-                    <div className="space-y-4">
+                <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+                    {/* Brand Logo Container */}
+                    <div className="p-5 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 flex justify-center shadow-inner">
+                        <RtbLogo layout="horizontal" />
+                    </div>
+
+                    <div className="space-y-6">
                         <section>
                             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Nuestra Misión</h4>
-                            <p className="text-slate-600 text-sm leading-relaxed font-medium">
-                                Transformamos el aprendizaje de las matemáticas en una aventura épica. Diseñado para niños de 5 a 9 años, Numiland fomenta la confianza numérica a través del juego y el refuerzo positivo.
+                            <p className="text-slate-600 text-sm leading-relaxed font-semibold">
+                                Transformamos el aprendizaje de las matemáticas en una aventura épica. Diseñado para niños de 5 a 13 años, Numiland fomenta la confianza numérica a través del juego, desafíos gamificados y el refuerzo positivo.
                             </p>
+                        </section>
+
+                        <section className="space-y-3">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Los 5 Mundos de Numiland</h4>
+                            
+                            <div className="space-y-3">
+                                {/* Exploradores */}
+                                <div className="flex items-start gap-3 p-3 bg-brand-blue/5 rounded-2xl border border-brand-blue/10">
+                                    <div className="p-2 bg-brand-blue rounded-xl text-white mt-1">
+                                        <Compass size={18} />
+                                    </div>
+                                    <div className="text-left">
+                                        <h5 className="font-extrabold text-slate-800 text-sm">Mundo Exploradores (5 - 7 años)</h5>
+                                        <p className="text-slate-500 text-[11px] font-bold leading-tight mt-0.5">
+                                            Primeros pasos matemáticos. Conteo interactivo de objetos animados, correspondencia de conjuntos, secuencias numéricas cortas, sumas y restas sencillas.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Aventureros */}
+                                <div className="flex items-start gap-3 p-3 bg-brand-green/5 rounded-2xl border border-brand-green/10">
+                                    <div className="p-2 bg-brand-green rounded-xl text-white mt-1">
+                                        <Map size={18} />
+                                    </div>
+                                    <div className="text-left">
+                                        <h5 className="font-extrabold text-slate-800 text-sm">Mundo Aventureros (8 - 10 años)</h5>
+                                        <p className="text-slate-500 text-[11px] font-bold leading-tight mt-0.5">
+                                            Retos de cálculo mental rápido, patrones secuenciales y la <span className="text-brand-green">escritura correcta de los nombres de los números en español latino</span>.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Tablas */}
+                                <div className="flex items-start gap-3 p-3 bg-brand-purple/5 rounded-2xl border border-brand-purple/10">
+                                    <div className="p-2 bg-brand-purple rounded-xl text-white mt-1">
+                                        <GraduationCap size={18} />
+                                    </div>
+                                    <div className="text-left">
+                                        <h5 className="font-extrabold text-slate-800 text-sm">Mundo Tablas (Multiplicar 0 - 10)</h5>
+                                        <p className="text-slate-500 text-[11px] font-bold leading-tight mt-0.5">
+                                            Entrenamiento intensivo y lúdico para dominar las tablas de multiplicar del 0 al 10, divisiones sencillas y resolución mental veloz de problemas.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Maestros */}
+                                <div className="flex items-start gap-3 p-3 bg-brand-orange/5 rounded-2xl border border-brand-orange/10">
+                                    <div className="p-2 bg-brand-orange rounded-xl text-white mt-1">
+                                        <Zap size={18} />
+                                    </div>
+                                    <div className="text-left">
+                                        <h5 className="font-extrabold text-slate-800 text-sm">Mundo Maestros (11 - 13 años)</h5>
+                                        <p className="text-slate-500 text-[11px] font-bold leading-tight mt-0.5">
+                                            Aritmética avanzada, patrones complejos, operaciones de álgebra básica preliminar y <span className="text-brand-orange font-bold">traducción/escritura de números grandes en español</span>.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Leyendas */}
+                                <div className="flex items-start gap-3 p-3 bg-brand-pink/5 rounded-2xl border border-brand-pink/10">
+                                    <div className="p-2 bg-brand-pink rounded-xl text-white mt-1">
+                                        <Rocket size={18} />
+                                    </div>
+                                    <div className="text-left">
+                                        <h5 className="font-extrabold text-slate-800 text-sm">Mundo Leyendas (Secundaria)</h5>
+                                        <p className="text-slate-500 text-[11px] font-bold leading-tight mt-0.5">
+                                            Ecuaciones avanzadas con incógnitas, interpretación geométrica de áreas/perímetros, identificación de coordenadas cartesianas y funciones.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </section>
 
                         {!isPaid && (

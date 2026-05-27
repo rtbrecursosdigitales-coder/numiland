@@ -111,10 +111,10 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
         key={step}
         initial={{ scale: 0.9, opacity: 0, x: 20 }}
         animate={{ scale: 1, opacity: 1, x: 0 }}
-        className="glass-card w-full max-w-2xl p-8 md:p-12 overflow-y-auto max-h-[85vh] no-scrollbar relative"
+        className="glass-card w-full max-w-2xl p-6 md:p-10 flex flex-col max-h-[90vh] md:max-h-[85vh] relative overflow-hidden"
       >
         {/* Progress Dots */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-6 md:mb-8 flex-shrink-0">
             {[1, 2, 3, 4].map(s => (
                 <div key={s} className={cn(
                     "w-3 h-3 rounded-full transition-all duration-500",
@@ -124,18 +124,20 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
         </div>
 
         {step === 1 && (
-          <div className="space-y-8 py-10">
-            <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight">
-              Bienvenido Explorador
-            </h2>
-            <p className="text-slate-500 font-bold text-lg">
-              Inicia sesión para guardar tus estrellas y jugar en cualquier dispositivo.
-            </p>
-            <div className="flex flex-col gap-4">
+          <div className="space-y-8 flex-1 flex flex-col justify-center py-6">
+            <div className="space-y-4">
+              <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight">
+                Bienvenido Explorador
+              </h2>
+              <p className="text-slate-500 font-bold text-lg">
+                Inicia sesión para guardar tus estrellas y jugar en cualquier dispositivo.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4 max-w-md mx-auto w-full">
               <Button 
                 onClick={onSignIn}
                 size="xl" 
-                className="w-full h-20 text-2xl font-black gap-4"
+                className="w-full h-16 md:h-20 text-xl md:text-2xl font-black gap-4"
               >
                 <LogIn className="w-8 h-8" /> ENTRAR CON GOOGLE
               </Button>
@@ -143,7 +145,7 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
                 onClick={() => setStep(2)}
                 variant="outline"
                 size="xl" 
-                className="w-full h-16 text-xl font-black gap-3 border-2 border-slate-200 text-slate-500 hover:bg-slate-50"
+                className="w-full h-14 md:h-16 text-lg md:text-xl font-black gap-3 border-2 border-slate-200 text-slate-500 hover:bg-slate-50"
               >
                 🎮 CONTINUAR COMO INVITADO
               </Button>
@@ -155,93 +157,101 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
         )}
 
         {step === 2 && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tight">
-                    ¿Cómo te llamas?
-                </h2>
-                <div className="py-4">
-                    <input 
-                        type="text" 
-                        autoFocus
-                        placeholder="Escribe tu nombre..."
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        maxLength={15}
-                        className="w-full text-4xl md:text-5xl font-black text-brand-blue placeholder:text-slate-200 border-b-8 border-brand-blue/20 focus:border-brand-blue outline-none transition-all pb-4 text-center bg-transparent"
-                    />
+            <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="flex-1 flex flex-col justify-center space-y-8">
+                  <h2 className="text-3xl md:text-4xl font-black text-slate-800 uppercase tracking-tight text-center">
+                      ¿Cómo te llamas?
+                  </h2>
+                  <div className="py-4">
+                      <input 
+                          type="text" 
+                          autoFocus
+                          placeholder="Escribe tu nombre..."
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          maxLength={15}
+                          className="w-full text-4xl md:text-5xl font-black text-brand-blue placeholder:text-slate-200 border-b-8 border-brand-blue/20 focus:border-brand-blue outline-none transition-all pb-4 text-center bg-transparent"
+                      />
+                  </div>
                 </div>
-                <Button 
-                    onClick={handleNext}
-                    size="xl" 
-                    className="w-full h-20 text-2xl font-black group mt-8"
-                    disabled={!name.trim()}
-                >
-                    CONTINUAR <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
-                </Button>
+                <div className="flex-shrink-0">
+                  <Button 
+                      onClick={handleNext}
+                      size="xl" 
+                      className="w-full h-16 md:h-20 text-xl md:text-2xl font-black group mt-4"
+                      disabled={!name.trim()}
+                  >
+                      CONTINUAR <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                  </Button>
+                </div>
             </div>
         )}
 
         {step === 3 && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tight">
+            <div className="flex-1 flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden">
+                <h2 className="text-3xl md:text-4xl font-black text-slate-800 uppercase tracking-tight flex-shrink-0">
                     Elige tu Personaje
                 </h2>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                  {availableAvatars.map(([key, icon]) => (
-                    <button
-                      key={key}
-                      onClick={() => setAvatar(key)}
-                      className={cn(
-                        "w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all relative overflow-hidden",
-                        avatar === key 
-                          ? "bg-brand-yellow border-4 border-white shadow-lg scale-110 rotate-3 z-10" 
-                          : "bg-slate-100 hover:bg-slate-200 border-4 border-transparent"
-                      )}
-                    >
-                      {icon}
-                    </button>
-                  ))}
-                  {lockedAvatars.map(([key]) => (
-                    <div key={key} className="w-full aspect-square rounded-2xl bg-slate-100/50 flex items-center justify-center text-slate-300 border-2 border-dashed border-slate-200 grayscale opacity-50">
-                        <Lock size={16} />
-                    </div>
-                  ))}
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar bg-slate-50/50 p-4 rounded-[2rem] border-2 border-white/50">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                    {availableAvatars.map(([key, icon]) => (
+                      <button
+                        key={key}
+                        onClick={() => setAvatar(key)}
+                        className={cn(
+                          "w-full aspect-square rounded-2xl flex items-center justify-center text-4xl transition-all relative overflow-hidden",
+                          avatar === key 
+                            ? "bg-brand-yellow border-4 border-white shadow-lg scale-110 rotate-3 z-10" 
+                            : "bg-white hover:bg-slate-100 border-4 border-transparent shadow-sm"
+                        )}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                    {lockedAvatars.map(([key]) => (
+                      <div key={key} className="w-full aspect-square rounded-2xl bg-slate-100/50 flex items-center justify-center text-slate-300 border-2 border-dashed border-slate-200 grayscale opacity-50">
+                          <Lock size={16} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {!isAdmin && (
-                    <p className="text-[11px] text-brand-pink font-bold uppercase tracking-wider">
-                        ★ +20 personajes especiales en la versión FULL
-                    </p>
-                )}
-                <Button 
-                    onClick={handleNext}
-                    size="xl" 
-                    className="w-full h-20 text-2xl font-black group"
-                >
-                    CONTINUAR <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
-                </Button>
+                <div className="flex-shrink-0 flex flex-col gap-4">
+                  {!isAdmin && (
+                      <p className="text-[10px] md:text-[11px] text-brand-pink font-bold uppercase tracking-wider text-center">
+                          ★ +20 personajes especiales en la versión FULL
+                      </p>
+                  )}
+                  <Button 
+                      onClick={handleNext}
+                      size="xl" 
+                      className="w-full h-16 md:h-20 text-xl md:text-2xl font-black group"
+                  >
+                      CONTINUAR <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                  </Button>
+                </div>
             </div>
         )}
 
         {step === 4 && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-4xl font-black text-slate-800 uppercase tracking-tight">
+            <div className="flex-1 flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden">
+                <h2 className="text-3xl md:text-4xl font-black text-slate-800 uppercase tracking-tight flex-shrink-0">
                     Elige un Mundo
                 </h2>
-                <div className="grid grid-cols-1 gap-3">
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 bg-slate-50/50 p-4 rounded-[2rem] border-2 border-white/50">
                   {worlds.map((world) => (
                     <button
                       key={world.id}
                       onClick={() => setStartingWorld(world.id as GameWorld)}
                       className={cn(
-                        "flex items-center p-4 rounded-3xl font-black text-lg transition-all border-b-8 gap-4 text-left",
+                        "w-full flex items-center p-4 rounded-3xl font-black text-lg transition-all border-b-8 gap-4 text-left",
                         startingWorld === world.id
-                          ? `${world.color} text-white border-black/20 scale-[1.02] shadow-xl`
-                          : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                          ? `${world.color} text-white border-black/20 scale-[1.01] shadow-lg`
+                          : "bg-white text-slate-400 border-slate-200 hover:bg-slate-50 shadow-sm"
                       )}
                     >
                       <div className={cn(
                         "w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner",
-                        startingWorld === world.id ? "bg-white/20" : "bg-slate-200"
+                        startingWorld === world.id ? "bg-white/20" : "bg-slate-100"
                       )}>
                         {world.icon}
                       </div>
@@ -269,13 +279,15 @@ export function Onboarding({ onComplete, onSignIn, isSignedIn, isAdmin, userEmai
                     </button>
                   ))}
                 </div>
-                <Button 
-                    onClick={handleNext}
-                    size="xl" 
-                    className="w-full h-20 text-2xl font-black group bg-brand-pink hover:bg-brand-pink/90 text-white border-brand-pink/30"
-                >
-                    ¡A JUGAR AHORA! <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
-                </Button>
+                <div className="flex-shrink-0">
+                  <Button 
+                      onClick={handleNext}
+                      size="xl" 
+                      className="w-full h-16 md:h-20 text-xl md:text-2xl font-black group bg-brand-pink hover:bg-brand-pink/90 text-white border-brand-pink/30 mt-2"
+                  >
+                      ¡A JUGAR AHORA! <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                  </Button>
+                </div>
             </div>
         )}
 

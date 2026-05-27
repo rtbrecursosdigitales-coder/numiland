@@ -17,7 +17,8 @@ export enum TaskType {
   FUNCTIONS = 'functions',
   VISUAL_MULTIPLICATION = 'visual_multiplication',
   WORD_PROBLEM = 'word_problem',
-  MISSING_FACTOR = 'missing_factor'
+  MISSING_FACTOR = 'missing_factor',
+  SPANISH_NUMBER = 'spanish_number'
 }
 
 export type GameWorld = 'explorers' | 'adventurers' | 'scholars' | 'masters' | 'legends';

@@ -53,6 +53,8 @@ export class GameGenerator {
         return this.genWordProblem(id, effectiveMin, effectiveMax, targetTable);
       case TaskType.MISSING_FACTOR:
         return this.genMissingFactor(id, effectiveMin, effectiveMax, targetTable);
+      case TaskType.SPANISH_NUMBER:
+        return this.genSpanishNumber(id, effectiveMin, effectiveMax);
       default:
         return this.genCounting(id, effectiveMin, effectiveMax);
     }
@@ -456,5 +458,101 @@ export class GameGenerator {
       }
     }
     return Array.from(options).sort(() => Math.random() - 0.5);
+  }
+
+  public static numberToSpanishWord(n: number): string {
+    if (n === 0) return 'cero';
+
+    const units = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+    const tens = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    
+    // Explicit mappings for clear Latin-Spanish norms
+    const teensMap: Record<number, string> = {
+      10: 'diez', 11: 'once', 12: 'doce', 13: 'trece', 14: 'catorce', 15: 'quince',
+      16: 'dieciséis', 17: 'diecisiete', 18: 'dieciocho', 19: 'diecinueve'
+    };
+
+    const twentiesMap: Record<number, string> = {
+      20: 'veinte', 21: 'veintiuno', 22: 'veintidós', 23: 'veintitrés', 24: 'veinticuatro',
+      25: 'veinticinco', 26: 'veintiséis', 27: 'veintisiete', 28: 'veintiocho', 29: 'veintinueve'
+    };
+
+    if (n < 10) return units[n];
+    if (n >= 10 && n < 20) return teensMap[n];
+    if (n >= 20 && n < 30) return twentiesMap[n];
+    
+    if (n >= 30 && n < 100) {
+      const u = n % 10;
+      const t = Math.floor(n / 10);
+      if (u === 0) return tens[t];
+      return `${tens[t]} y ${units[u]}`;
+    }
+
+    if (n === 100) return 'cien';
+    
+    if (n > 100 && n < 1000) {
+      const hundredNames = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+      const h = Math.floor(n / 100);
+      const remainder = n % 100;
+      if (remainder === 0) return hundredNames[h];
+      return `${hundredNames[h]} ${this.numberToSpanishWord(remainder)}`;
+    }
+
+    if (n === 1000) return 'mil';
+
+    if (n > 1000 && n < 1000000) {
+      const thousands = Math.floor(n / 1000);
+      const remainder = n % 1000;
+      const thPrefix = thousands === 1 ? 'mil' : `${this.numberToSpanishWord(thousands)} mil`;
+      if (remainder === 0) return thPrefix;
+      return `${thPrefix} ${this.numberToSpanishWord(remainder)}`;
+    }
+
+    return n.toString();
+  }
+
+  private static genSpanishNumber(id: string, min: number, max: number): GameTask {
+    // Pick a number inside range
+    let n = Math.floor(Math.random() * (max - min + 1)) + min;
+    if (n < 1) n = 1;
+    
+    const spanishWord = this.numberToSpanishWord(n);
+    
+    // Pick a task sub-type randomly so learning is diverse
+    const roll = Math.floor(Math.random() * 3);
+    const subType = roll === 0 ? 'select-name' : roll === 1 ? 'select-digit' : 'type-name';
+    
+    if (subType === 'select-name') {
+      const optionNumbers = this.generateOptions(n, Math.max(1, min - 10), max + 10, 4);
+      const options = optionNumbers.map(num => this.numberToSpanishWord(num));
+      
+      return {
+        id,
+        type: TaskType.SPANISH_NUMBER,
+        prompt: `¿Cómo se escribe el número ${n} en letras?`,
+        question: { number: n, word: spanishWord, subType },
+        answer: spanishWord,
+        options
+      };
+    } else if (subType === 'select-digit') {
+      const options = this.generateOptions(n, Math.max(1, min - 10), max + 10, 4);
+      return {
+        id,
+        type: TaskType.SPANISH_NUMBER,
+        prompt: `¿Qué número es "${spanishWord}"?`,
+        question: { number: n, word: spanishWord, subType },
+        answer: n,
+        options
+      };
+    } else { // type-name
+      return {
+        id,
+        type: TaskType.SPANISH_NUMBER,
+        prompt: `Escribe con letras el número ${n}`,
+        question: { number: n, word: spanishWord, subType },
+        answer: spanishWord,
+        options: [] // they type it in!
+      };
+    }
   }
 }

@@ -18,6 +18,7 @@ import { FunctionTask } from './components/tasks/FunctionTask';
 import { VisualMultiplicationTask } from './components/tasks/VisualMultiplicationTask';
 import { WordProblemTask } from './components/tasks/WordProblemTask';
 import { MissingFactorTask } from './components/tasks/MissingFactorTask';
+import { SpanishNumberTask } from './components/tasks/SpanishNumberTask';
 import { GameGenerator } from './lib/GameGenerator';
 import { LEVELS, INITIAL_PROGRESS, TASKS_PER_LEVEL, MASTER_TASKS_COUNT, AVATAR_ICONS } from './constants';
 import { UserProgress, TaskType, GameTask, Avatar, GameWorld } from './types';
@@ -31,6 +32,7 @@ import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'fir
 import { Button } from './components/ui/Button';
 import { Settings } from './components/Settings';
 import { InfoModal } from './components/InfoModal';
+import { RtbLogo } from './components/RtbLogo';
 import { Lock, Crown, MessageCircle, ExternalLink, Volume2, VolumeX, RefreshCcw, Compass, Trophy, Zap, Rocket, X, Settings as SettingsIcon, Info, HelpCircle, Star } from 'lucide-react';
 import { cn } from './lib/utils';
 import { say, stopSpeaking } from './lib/speech';
@@ -422,13 +424,13 @@ export default function App() {
     if (level.world === 'explorers') {
         gameTypes = [TaskType.COUNTING, TaskType.MATCHING, TaskType.SEQUENCE, TaskType.MISSING_NUMBER, TaskType.COMPARISON, TaskType.ADDITION, TaskType.SUBTRACTION];
     } else if (level.world === 'adventurers') {
-        gameTypes = [TaskType.SEQUENCE, TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION];
+        gameTypes = [TaskType.SEQUENCE, TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.SPANISH_NUMBER];
         hasTimeLimit = true;
     } else if (level.world === 'scholars') {
         gameTypes = [TaskType.VISUAL_MULTIPLICATION, TaskType.WORD_PROBLEM, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.MISSING_FACTOR];
         hasTimeLimit = true;
     } else if (level.world === 'masters') {
-        gameTypes = [TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.ALGEBRA];
+        gameTypes = [TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.ALGEBRA, TaskType.SPANISH_NUMBER];
         hasTimeLimit = true;
     } else { // legends
         gameTypes = [TaskType.ALGEBRA, TaskType.GEOMETRY, TaskType.COORDINATES, TaskType.FUNCTIONS, TaskType.MULTIPLICATION, TaskType.DIVISION];
@@ -867,12 +869,8 @@ export default function App() {
                 {/* Footer Section - Integrated */}
                 <div className="mt-20 pt-12 border-t-2 border-dashed border-white/10 text-center space-y-4">
                     <div className="flex flex-col items-center gap-6">
-                        <div className="bg-white/95 backdrop-blur-md p-6 rounded-[3rem] border-4 border-white shadow-2xl flex items-center gap-4 transition-transform hover:scale-105">
-                            <Rocket size={40} className="text-brand-blue" />
-                            <div className="text-left">
-                                <p className="text-slate-800 font-extrabold text-lg uppercase tracking-tight leading-none mb-1">RTB Recursos Digitales</p>
-                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest leading-none">Creadores de Aventuras</p>
-                            </div>
+                        <div className="bg-white/95 backdrop-blur-md p-8 rounded-[3.5rem] border-4 border-white shadow-2xl transition-transform hover:scale-105 max-w-sm mx-auto w-full">
+                            <RtbLogo layout="vertical" />
                         </div>
                         <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] pb-12">
                             v1.2.0 • Hecho con ✨ por especialistas en educación
@@ -1030,6 +1028,12 @@ export default function App() {
                         <MissingFactorTask 
                             question={currentTask.question as any}
                             options={currentTask.options as number[]}
+                            onAnswer={handleAnswer}
+                        />
+                    )}
+                    {currentTask?.type === TaskType.SPANISH_NUMBER && (
+                        <SpanishNumberTask 
+                            task={currentTask}
                             onAnswer={handleAnswer}
                         />
                     )}
