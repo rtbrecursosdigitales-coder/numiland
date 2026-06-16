@@ -441,7 +441,7 @@ export default function App() {
     if (level.world === 'explorers') {
         gameTypes = [TaskType.COUNTING, TaskType.MATCHING, TaskType.SEQUENCE, TaskType.MISSING_NUMBER, TaskType.COMPARISON, TaskType.ADDITION, TaskType.SUBTRACTION];
     } else if (level.world === 'adventurers') {
-        gameTypes = [TaskType.SEQUENCE, TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.SPANISH_NUMBER];
+        gameTypes = [TaskType.SEQUENCE, TaskType.NUMBER_LINE, TaskType.ORDERING, TaskType.PATTERN, TaskType.ADDITION, TaskType.SUBTRACTION, TaskType.SPANISH_NUMBER];
         hasTimeLimit = true;
     } else if (level.world === 'scholars') {
         gameTypes = [TaskType.VISUAL_MULTIPLICATION, TaskType.WORD_PROBLEM, TaskType.MULTIPLICATION, TaskType.DIVISION, TaskType.MISSING_FACTOR];

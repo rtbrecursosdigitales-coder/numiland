@@ -129,6 +129,58 @@ export function InfoModal({ isOpen, onClose, isPaid, onGoToPayment }: InfoModalP
                             </div>
                         </section>
 
+                        <section className="bg-slate-50/80 p-5 rounded-3xl border-2 border-slate-100 space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sistema Especial de Estrellas</h4>
+                            <p className="text-slate-600 text-xs font-semibold leading-relaxed">
+                                ¡Cada nivel es rejugable y evoluciona! Cada vez que completas un nivel, la insignia de estrellas cambia de color para demostrar tu maestría acumulada:
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-2 text-[11px] font-extrabold text-slate-700">
+                                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <span className="text-lg">🥉</span>
+                                    <div>
+                                        <p className="font-extrabold leading-none text-brand-orange">Bronce</p>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5">1 vez superado</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <span className="text-lg">🥈</span>
+                                    <div>
+                                        <p className="font-extrabold leading-none text-slate-400">Plata</p>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5">2 veces superado</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <span className="text-lg">🥇</span>
+                                    <div>
+                                        <p className="font-extrabold leading-none text-amber-500">Oro</p>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5">3 veces superado</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <span className="text-lg">💎</span>
+                                    <div>
+                                        <p className="font-extrabold leading-none text-sky-400">Diamante</p>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5">4-5 veces superado</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <span className="text-lg">❤️</span>
+                                    <div>
+                                        <p className="font-extrabold leading-none text-rose-500">Rubí</p>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5">6-7 veces superado</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                    <span className="text-lg">👑</span>
+                                    <div>
+                                        <p className="font-extrabold leading-none text-purple-500">Maestro</p>
+                                        <p className="text-[9px] text-slate-400 font-bold mt-0.5">8+ veces superado</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
                         {!isPaid && (
                             <div className="bg-brand-yellow/10 p-5 rounded-3xl border-2 border-brand-yellow/20">
                                 <div className="flex items-center gap-3 mb-2">
